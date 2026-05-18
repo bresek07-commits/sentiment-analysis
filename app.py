@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import sqlite3
 import streamlit_authenticator as stauth
 import speech_recognition as sr
+import os
 
 from transformers import pipeline
 from deep_translator import GoogleTranslator
@@ -25,16 +26,12 @@ st.set_page_config(
 # -------------------------------------------------
 
 client = OpenAI(
-    api_key="YOUR_OPENAI_API_KEY"
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 # -------------------------------------------------
 # USER LOGIN DATA
 # -------------------------------------------------
-
-names = ['Azhar', 'Admin']
-
-usernames = ['azhar', 'admin']
 
 passwords = ['1234', 'admin123']
 
@@ -47,15 +44,30 @@ hashed_passwords = stauth.Hasher.hash_passwords(
 )
 
 # -------------------------------------------------
-# AUTHENTICATION SETUP
+# CREDENTIALS
+# -------------------------------------------------
+
+credentials = {
+    "usernames": {
+        "azhar": {
+            "name": "Azhar",
+            "password": hashed_passwords[0]
+        },
+        "admin": {
+            "name": "Admin",
+            "password": hashed_passwords[1]
+        }
+    }
+}
+
+# -------------------------------------------------
+# AUTHENTICATION
 # -------------------------------------------------
 
 authenticator = stauth.Authenticate(
-    names,
-    usernames,
-    hashed_passwords,
-    'sentiment_app',
-    'abcdef',
+    credentials,
+    "sentiment_app",
+    "abcdef",
     cookie_expiry_days=1
 )
 
