@@ -1,0 +1,10 @@
+streamlit
+transformers
+torch
+deep-translator
+matplotlib
+text2emotion
+emoji
+streamlit-authenticator
+SpeechRecognition
+openai

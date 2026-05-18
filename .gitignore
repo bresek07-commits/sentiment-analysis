@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# Database
+*.db
+
+# Streamlit
+.streamlit/
+
+# VS Code
+.vscode/
+
+# Environment Variables
+.env
+
+# HuggingFace / Transformers Cache
+.cache/
+
+# System Files
+.DS_Store
+Thumbs.db
