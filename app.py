@@ -1,7 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import sqlite3
-import streamlit_authenticator as stauth
 import speech_recognition as sr
 import os
 
@@ -30,125 +29,134 @@ client = OpenAI(
 )
 
 # -------------------------------------------------
-# USER LOGIN DATA
+# SIMPLE LOGIN SYSTEM
 # -------------------------------------------------
 
-passwords = ['1234', 'admin123']
-
-# -------------------------------------------------
-# HASH PASSWORDS
-# -------------------------------------------------
-
-hashed_passwords = stauth.Hasher.hash_passwords(
-    passwords
-)
-
-# -------------------------------------------------
-# CREDENTIALS
-# -------------------------------------------------
-
-credentials = {
-    "usernames": {
-        "azhar": {
-            "name": "Azhar",
-            "password": hashed_passwords[0]
-        },
-        "admin": {
-            "name": "Admin",
-            "password": hashed_passwords[1]
-        }
+USERS = {
+    "azhar": {
+        "name": "Azhar",
+        "password": "1234"
+    },
+    "admin": {
+        "name": "Admin",
+        "password": "admin123"
     }
 }
 
-# -------------------------------------------------
-# AUTHENTICATION
-# -------------------------------------------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-authenticator = stauth.Authenticate(
-    credentials,
-    "sentiment_app",
-    "abcdef",
-    cookie_expiry_days=1
-)
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
-# -------------------------------------------------
-# LOGIN
-# -------------------------------------------------
+if "name" not in st.session_state:
+    st.session_state.name = ""
 
-name, authentication_status, username = authenticator.login(
-    'Login',
-    'main'
-)
+if not st.session_state.logged_in:
 
-# -------------------------------------------------
-# DATABASE SETUP
-# -------------------------------------------------
+    st.title("🔐 Login")
 
-conn = sqlite3.connect(
-    'sentiment.db',
-    check_same_thread=False
-)
+    username_input = st.text_input("Username")
 
-cursor = conn.cursor()
-
-cursor.execute(
-    '''
-    CREATE TABLE IF NOT EXISTS sentiment_history (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        username TEXT,
-
-        original_text TEXT,
-
-        translated_text TEXT,
-
-        sentiment TEXT,
-
-        confidence REAL,
-
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-    '''
-)
-
-conn.commit()
-
-# -------------------------------------------------
-# LOAD BERT MODEL
-# -------------------------------------------------
-
-classifier = pipeline(
-    "sentiment-analysis"
-)
-
-# -------------------------------------------------
-# TRANSLATION FUNCTION
-# -------------------------------------------------
-
-def translate_to_english(text):
-
-    translated = GoogleTranslator(
-        source='auto',
-        target='en'
-    ).translate(text)
-
-    return translated
-
-# -------------------------------------------------
-# LOGIN SUCCESS
-# -------------------------------------------------
-
-if authentication_status:
-
-    st.success(
-        f'Welcome {name}'
+    password_input = st.text_input(
+        "Password",
+        type="password"
     )
 
-    authenticator.logout(
-        'Logout',
-        'sidebar'
+    if st.button("Login"):
+
+        if username_input in USERS:
+
+            if USERS[username_input]["password"] == password_input:
+
+                st.session_state.logged_in = True
+
+                st.session_state.username = username_input
+
+                st.session_state.name = USERS[username_input]["name"]
+
+                st.rerun()
+
+            else:
+
+                st.error("Incorrect password")
+
+        else:
+
+            st.error("User not found")
+
+else:
+
+    username = st.session_state.username
+
+    name = st.session_state.name
+
+    st.sidebar.success(f"Welcome {name}")
+
+    if st.sidebar.button("Logout"):
+
+        st.session_state.logged_in = False
+
+        st.session_state.username = ""
+
+        st.session_state.name = ""
+
+        st.rerun()
+
+    # -------------------------------------------------
+    # DATABASE SETUP
+    # -------------------------------------------------
+
+    conn = sqlite3.connect(
+        'sentiment.db',
+        check_same_thread=False
     )
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS sentiment_history (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            username TEXT,
+
+            original_text TEXT,
+
+            translated_text TEXT,
+
+            sentiment TEXT,
+
+            confidence REAL,
+
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        '''
+    )
+
+    conn.commit()
+
+    # -------------------------------------------------
+    # LOAD BERT MODEL
+    # -------------------------------------------------
+
+    classifier = pipeline(
+        "sentiment-analysis"
+    )
+
+    # -------------------------------------------------
+    # TRANSLATION FUNCTION
+    # -------------------------------------------------
+
+    def translate_to_english(text):
+
+        translated = GoogleTranslator(
+            source='auto',
+            target='en'
+        ).translate(text)
+
+        return translated
 
     # -------------------------------------------------
     # APP TITLE
@@ -437,23 +445,31 @@ if authentication_status:
                 Respond in a friendly way.
                 """
 
-            response = client.chat.completions.create(
+            try:
 
-                model="gpt-4.1-mini",
+                response = client.chat.completions.create(
 
-                messages=[
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
-            )
+                    model="gpt-4.1-mini",
 
-            bot_reply = response.choices[0].message.content
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ]
+                )
 
-            st.write(
-                bot_reply
-            )
+                bot_reply = response.choices[0].message.content
+
+                st.write(
+                    bot_reply
+                )
+
+            except:
+
+                st.warning(
+                    "OpenAI API key not configured"
+                )
 
     # -------------------------------------------------
     # USER HISTORY
@@ -564,23 +580,3 @@ if authentication_status:
             st.write(
                 row
             )
-
-# -------------------------------------------------
-# LOGIN FAILED
-# -------------------------------------------------
-
-elif authentication_status == False:
-
-    st.error(
-        'Incorrect username or password'
-    )
-
-# -------------------------------------------------
-# LOGIN EMPTY
-# -------------------------------------------------
-
-elif authentication_status == None:
-
-    st.warning(
-        'Please login'
-    )
