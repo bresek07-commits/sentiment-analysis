@@ -21,12 +21,18 @@ st.set_page_config(
 )
 
 # -------------------------------------------------
-# OPENAI CLIENT
+# OPENAI API SETUP
 # -------------------------------------------------
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+client = None
+
+if openai_api_key:
+
+    client = OpenAI(
+        api_key=openai_api_key
+    )
 
 # -------------------------------------------------
 # SIMPLE LOGIN SYSTEM
@@ -138,7 +144,7 @@ else:
     conn.commit()
 
     # -------------------------------------------------
-    # LOAD BERT MODEL
+    # LOAD AI MODEL
     # -------------------------------------------------
 
     classifier = pipeline(
@@ -423,51 +429,59 @@ else:
                 "🤖 AI Assistant"
             )
 
-            if label == "NEGATIVE":
+            if client:
 
-                prompt = f"""
-                The user feels upset.
+                if label == "NEGATIVE":
 
-                User message:
-                {translated_text}
+                    prompt = f"""
+                    The user feels upset.
 
-                Respond politely and helpfully.
-                """
+                    User message:
+                    {translated_text}
+
+                    Respond politely and helpfully.
+                    """
+
+                else:
+
+                    prompt = f"""
+                    The user feels positive.
+
+                    User message:
+                    {translated_text}
+
+                    Respond in a friendly way.
+                    """
+
+                try:
+
+                    response = client.chat.completions.create(
+
+                        model="gpt-4.1-mini",
+
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": prompt
+                            }
+                        ]
+                    )
+
+                    bot_reply = response.choices[0].message.content
+
+                    st.write(
+                        bot_reply
+                    )
+
+                except Exception as e:
+
+                    st.error(
+                        f"OpenAI Error: {e}"
+                    )
 
             else:
 
-                prompt = f"""
-                The user feels positive.
-
-                User message:
-                {translated_text}
-
-                Respond in a friendly way.
-                """
-
-            try:
-
-                response = client.chat.completions.create(
-
-                    model="gpt-4.1-mini",
-
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ]
-                )
-
-                bot_reply = response.choices[0].message.content
-
-                st.write(
-                    bot_reply
-                )
-
-            except:
-
-                st.warning(
+                st.info(
                     "OpenAI API key not configured"
                 )
 
