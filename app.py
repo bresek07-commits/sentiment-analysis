@@ -42,9 +42,9 @@ passwords = ['1234', 'admin123']
 # HASH PASSWORDS
 # -------------------------------------------------
 
-hashed_passwords = stauth.Hasher(
+hashed_passwords = stauth.Hasher.hash_passwords(
     passwords
-).generate()
+)
 
 # -------------------------------------------------
 # AUTHENTICATION SETUP
@@ -512,8 +512,6 @@ if authentication_status:
             "📊 Admin Dashboard"
         )
 
-        # Total predictions
-
         cursor.execute(
             '''
             SELECT COUNT(*)
@@ -527,8 +525,6 @@ if authentication_status:
             "Total Predictions",
             total
         )
-
-        # All predictions
 
         cursor.execute(
             '''
