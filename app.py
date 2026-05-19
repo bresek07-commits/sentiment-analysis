@@ -8,9 +8,9 @@ import pandas as pd
 import numpy as np
 import pickle
 import sqlite3
+import matplotlib.pyplot as plt
 import nltk
 import text2emotion as te
-import matplotlib.pyplot as plt
 
 from deep_translator import GoogleTranslator
 from streamlit_mic_recorder import speech_to_text
@@ -20,7 +20,6 @@ from streamlit_mic_recorder import speech_to_text
 # =========================================================
 
 nltk.download('punkt')
-nltk.download('stopwords')
 
 # =========================================================
 # PAGE CONFIG
@@ -40,35 +39,29 @@ st.markdown("""
 <style>
 
 html, body, [class*="css"] {
+    background-color: #020617;
+    color: white;
     font-family: 'Segoe UI', sans-serif;
 }
 
 .main {
     background: linear-gradient(
         135deg,
-        #0F172A,
+        #020617,
+        #071129,
         #020617
     );
-    color: white;
 }
 
 h1 {
-    font-size: 52px !important;
+    font-size: 58px !important;
     font-weight: 800 !important;
     color: white;
+    margin-bottom: 10px;
 }
 
 h2, h3 {
     color: white !important;
-}
-
-.stTextArea textarea {
-    background-color: #1E293B !important;
-    color: white !important;
-    border-radius: 18px !important;
-    border: 1px solid #334155 !important;
-    font-size: 18px !important;
-    padding: 20px !important;
 }
 
 .stButton button {
@@ -76,57 +69,51 @@ h2, h3 {
         135deg,
         #2563EB,
         #7C3AED
-    ) !important;
-
-    color: white !important;
-
-    border: none !important;
-
-    border-radius: 15px !important;
-
-    height: 55px !important;
-
-    width: 170px !important;
-
-    font-size: 20px !important;
-
-    font-weight: 600 !important;
-
-    transition: 0.3s !important;
+    );
+    color: white;
+    border: none;
+    border-radius: 16px;
+    height: 58px;
+    width: 220px;
+    font-size: 22px;
+    font-weight: 700;
+    transition: 0.3s;
+    box-shadow: 0 8px 25px rgba(59,130,246,0.3);
 }
 
 .stButton button:hover {
-    transform: scale(1.03);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(124,58,237,0.4);
+}
+
+textarea {
+    background-color: #1E293B !important;
+    color: white !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    font-size: 18px !important;
 }
 
 .history-card {
-
-    background: rgba(30,41,59,0.7);
-
-    border: 1px solid rgba(255,255,255,0.06);
-
-    padding: 20px;
-
-    border-radius: 20px;
-
-    margin-bottom: 18px;
-
-    backdrop-filter: blur(8px);
-}
-
-.metric-card {
-
     background: linear-gradient(
         135deg,
-        rgba(59,130,246,0.15),
-        rgba(139,92,246,0.10)
+        rgba(30,41,59,0.95),
+        rgba(15,23,42,0.95)
     );
-
-    padding: 20px;
-
+    padding: 22px;
     border-radius: 20px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
 
-    border: 1px solid rgba(255,255,255,0.08);
+.result-card {
+    padding: 20px;
+    border-radius: 18px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 700;
 }
 
 </style>
@@ -169,12 +156,10 @@ conn.commit()
 # =========================================================
 
 USERS = {
-
     "azhar": {
         "name": "Azhar",
         "password": "1234"
     },
-
     "admin": {
         "name": "Admin",
         "password": "admin123"
@@ -227,11 +212,15 @@ if not st.session_state.logged_in:
 
             else:
 
-                st.error("Incorrect password")
+                st.error(
+                    "Incorrect password"
+                )
 
         else:
 
-            st.error("User not found")
+            st.error(
+                "User not found"
+            )
 
 # =========================================================
 # MAIN APP
@@ -250,7 +239,9 @@ else:
     if st.sidebar.button("Logout"):
 
         st.session_state.logged_in = False
+
         st.session_state.username = ""
+
         st.session_state.name = ""
 
         st.rerun()
@@ -261,49 +252,47 @@ else:
 
     try:
 
-        with open(
-            'sentiment_model.pkl',
-            'rb'
-        ) as f:
+        model = pickle.load(
+            open('sentiment_model.pkl', 'rb')
+        )
 
-            model = pickle.load(f)
-
-        with open(
-            'tfidf_vectorizer.pkl',
-            'rb'
-        ) as f:
-
-            vectorizer = pickle.load(f)
+        vectorizer = pickle.load(
+            open('tfidf_vectorizer.pkl', 'rb')
+        )
 
     except Exception as e:
 
-        st.error("Model files not found.")
+        st.error(
+            "Model files not found."
+        )
 
-        st.code(str(e))
+        st.code(
+            str(e)
+        )
 
         st.stop()
 
     # =========================================================
-    # TITLE
+    # HEADER
     # =========================================================
 
     st.title(
         "😊 Advanced Sentiment Analysis AI"
     )
 
-    st.write(
-        "AI-powered multilingual sentiment and emotion analysis"
-    )
+    st.markdown("""
+    ### AI-powered multilingual sentiment and emotion analysis
 
-    st.write(
-        "Supports English, Hindi, Urdu and more"
-    )
+    Supports English, Hindi, Urdu and more 🌍
+    """)
 
     # =========================================================
     # VOICE INPUT
     # =========================================================
 
-    st.subheader("🎤 Voice Input")
+    st.subheader(
+        "🎤 Voice Input"
+    )
 
     voice_text = speech_to_text(
         language='en',
@@ -315,11 +304,11 @@ else:
     if voice_text:
 
         st.success(
-            "Voice recognized!"
+            "Voice recognized successfully!"
         )
 
     # =========================================================
-    # TEXT INPUT
+    # TEXT AREA
     # =========================================================
 
     default_text = ""
@@ -339,9 +328,7 @@ else:
 
     if st.button("Analyze"):
 
-        user_input = user_input.strip()
-
-        if not user_input:
+        if user_input.strip() == "":
 
             st.warning(
                 "Please enter some text"
@@ -358,15 +345,21 @@ else:
                 translated_text = GoogleTranslator(
                     source='auto',
                     target='en'
-                ).translate(user_input)
+                ).translate(
+                    user_input
+                )
 
             except:
 
                 translated_text = user_input
 
-            st.subheader("🌍 Translated Text")
+            st.subheader(
+                "🌍 Translated Text"
+            )
 
-            st.success(translated_text)
+            st.success(
+                translated_text
+            )
 
             # =========================================================
             # PREDICTION
@@ -391,7 +384,7 @@ else:
             label = str(prediction).upper()
 
             # =========================================================
-            # DATABASE SAVE
+            # SAVE HISTORY
             # =========================================================
 
             cursor.execute(
@@ -423,7 +416,9 @@ else:
             # PREDICTION RESULT
             # =========================================================
 
-            st.subheader("📌 Prediction")
+            st.subheader(
+                "📌 Prediction"
+            )
 
             if label == "POSITIVE":
 
@@ -460,42 +455,49 @@ else:
                 <div style="
                     background: linear-gradient(
                         135deg,
-                        rgba(59,130,246,0.15),
-                        rgba(139,92,246,0.12)
+                        rgba(30,41,59,0.95),
+                        rgba(15,23,42,0.95)
                     );
-                    padding: 35px;
-                    border-radius: 25px;
-                    border: 1px solid rgba(255,255,255,0.08);
-                    backdrop-filter: blur(10px);
-                    text-align: center;
-                    margin-bottom: 30px;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                    padding:40px;
+                    border-radius:28px;
+                    border:1px solid rgba(255,255,255,0.08);
+                    box-shadow:0 10px 40px rgba(0,0,0,0.35);
+                    margin-bottom:35px;
+                    text-align:center;
                 ">
 
                     <div style="
-                        font-size:75px;
-                        font-weight:800;
+                        color:#E2E8F0;
+                        font-size:24px;
+                        font-weight:700;
+                        margin-bottom:25px;
+                    ">
+                        AI Prediction Confidence
+                    </div>
+
+                    <div style="
+                        font-size:82px;
+                        font-weight:900;
                         color:{confidence_color};
-                        margin-bottom:10px;
+                        margin-bottom:25px;
                     ">
                         {confidence:.2f}%
                     </div>
 
                     <div style="
                         width:100%;
-                        height:22px;
-                        background:#111827;
-                        border-radius:30px;
+                        height:24px;
+                        background:#0F172A;
+                        border-radius:40px;
                         overflow:hidden;
-                        margin-top:20px;
                         border:1px solid rgba(255,255,255,0.06);
                     ">
 
                         <div style="
                             width:{confidence}%;
                             height:100%;
-                            border-radius:30px;
-                            background: linear-gradient(
+                            border-radius:40px;
+                            background:linear-gradient(
                                 90deg,
                                 #3B82F6,
                                 #8B5CF6,
@@ -509,22 +511,13 @@ else:
                     <div style="
                         display:flex;
                         justify-content:space-between;
-                        margin-top:10px;
+                        margin-top:12px;
                         color:#94A3B8;
                         font-size:14px;
                     ">
                         <span>Low Confidence</span>
                         <span>High Confidence</span>
                     </div>
-
-                    <p style="
-                        margin-top:18px;
-                        color:#E2E8F0;
-                        font-size:18px;
-                        font-weight:500;
-                    ">
-                        AI Prediction Confidence
-                    </p>
 
                 </div>
                 """,
@@ -575,12 +568,15 @@ else:
                         "#9B5DE5"
                     ]
 
-                    wedges, texts = ax2.pie(
+                    ax2.pie(
                         emotion_values,
                         labels=emotion_names,
                         colors=colors,
                         startangle=90,
-                        wedgeprops=dict(width=0.35)
+                        wedgeprops={
+                            'width': 0.38,
+                            'edgecolor': 'white'
+                        }
                     )
 
                     plt.title(
@@ -594,10 +590,12 @@ else:
             except Exception as e:
 
                 st.warning(
-                    "Emotion detection currently unavailable"
+                    "Emotion detection unavailable"
                 )
 
-                st.code(str(e))
+                st.code(
+                    str(e)
+                )
 
             # =========================================================
             # AI ASSISTANT
@@ -684,7 +682,7 @@ else:
                 )
 
     # =========================================================
-    # ADMIN DASHBOARD
+    # ADMIN PANEL
     # =========================================================
 
     if username == "admin":
