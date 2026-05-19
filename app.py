@@ -481,55 +481,111 @@ else:
                 )
 
     # -------------------------------------------------
-    # USER HISTORY
+    # PROFESSIONAL PREDICTION HISTORY
     # -------------------------------------------------
 
     st.markdown("---")
 
-    st.subheader(
-        "📜 Prediction History"
-    )
+    with st.expander(
+        "📜 View Prediction History",
+        expanded=False
+    ):
 
-    cursor.execute(
-        '''
-        SELECT
-            original_text,
-            sentiment,
-            confidence,
-            created_at
+        cursor.execute(
+            '''
+            SELECT
+                original_text,
+                sentiment,
+                confidence,
+                created_at
 
-        FROM sentiment_history
+            FROM sentiment_history
 
-        WHERE username = ?
+            WHERE username = ?
 
-        ORDER BY id DESC
-        ''',
-        (username,)
-    )
+            ORDER BY id DESC
+            ''',
+            (username,)
+        )
 
-    rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-    if rows:
+        if rows:
 
-        for row in rows:
+            for row in rows:
+
+                text_value = row[0]
+
+                sentiment_value = row[1]
+
+                confidence_value = row[2]
+
+                time_value = row[3]
+
+                if sentiment_value == "POSITIVE":
+
+                    sentiment_color = "🟢"
+
+                    border_color = "#00C853"
+
+                else:
+
+                    sentiment_color = "🔴"
+
+                    border_color = "#FF5252"
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#1c2b3a;
+                        padding:20px;
+                        border-radius:15px;
+                        margin-bottom:20px;
+                        border-left:6px solid {border_color};
+                        box-shadow:0 4px 12px rgba(0,0,0,0.3);
+                    ">
+
+                    <h4 style="color:white;">
+                    📝 User Text
+                    </h4>
+
+                    <p style="
+                        color:#d6e4f0;
+                        font-size:18px;
+                    ">
+                    {text_value}
+                    </p>
+
+                    <hr>
+
+                    <p style="font-size:17px;">
+                    {sentiment_color}
+                    <b>Sentiment:</b>
+                    {sentiment_value}
+                    </p>
+
+                    <p style="font-size:17px;">
+                    📊 <b>Confidence:</b>
+                    {confidence_value}%
+                    </p>
+
+                    <p style="
+                        font-size:15px;
+                        color:#cccccc;
+                    ">
+                    ⏰ {time_value}
+                    </p>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+        else:
 
             st.info(
-                f"""
-                📝 Text: {row[0]}
-
-                ➡️ Sentiment: {row[1]}
-
-                📊 Confidence: {row[2]}%
-
-                ⏰ Time: {row[3]}
-                """
+                "No prediction history found"
             )
-
-    else:
-
-        st.info(
-            "No prediction history found"
-        )
 
     # -------------------------------------------------
     # ADMIN DASHBOARD
