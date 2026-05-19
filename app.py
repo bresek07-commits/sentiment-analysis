@@ -9,7 +9,6 @@ import numpy as np
 import pickle
 import sqlite3
 import nltk
-import text2emotion as te
 
 from deep_translator import GoogleTranslator
 from streamlit_mic_recorder import speech_to_text
@@ -431,7 +430,7 @@ else:
             if label == "POSITIVE":
 
                 st.markdown(
-                    f"""
+                    """
                     <div class="prediction-positive">
                         POSITIVE 😊
                     </div>
@@ -442,7 +441,7 @@ else:
             elif label == "NEGATIVE":
 
                 st.markdown(
-                    f"""
+                    """
                     <div class="prediction-negative">
                         NEGATIVE 😔
                     </div>
@@ -453,168 +452,12 @@ else:
             else:
 
                 st.markdown(
-                    f"""
+                    """
                     <div class="prediction-neutral">
                         NEUTRAL 😐
                     </div>
                     """,
                     unsafe_allow_html=True
-                )
-
-            # =========================================================
-            # CONFIDENCE SCORE
-            # =========================================================
-
-            st.subheader(
-                "📈 Confidence Score"
-            )
-
-            confidence_color = "#22C55E"
-
-            if confidence < 40:
-                confidence_color = "#EF4444"
-
-            elif confidence < 70:
-                confidence_color = "#F59E0B"
-
-            st.markdown(
-                f"""
-                <div style="
-                    background: linear-gradient(
-                        135deg,
-                        #172554,
-                        #1E293B
-                    );
-                    padding:40px;
-                    border-radius:25px;
-                    margin-top:20px;
-                    margin-bottom:30px;
-                    text-align:center;
-                    box-shadow:0 10px 30px rgba(0,0,0,0.4);
-                ">
-
-                    <div style="
-                        color:white;
-                        font-size:24px;
-                        font-weight:700;
-                        margin-bottom:20px;
-                    ">
-                        AI Prediction Confidence
-                    </div>
-
-                    <div style="
-                        font-size:80px;
-                        font-weight:900;
-                        color:{confidence_color};
-                        margin-bottom:25px;
-                    ">
-                        {confidence:.2f}%
-                    </div>
-
-                    <div style="
-                        width:100%;
-                        background:#0F172A;
-                        height:24px;
-                        border-radius:30px;
-                        overflow:hidden;
-                    ">
-
-                        <div style="
-                            width:{confidence}%;
-                            height:100%;
-                            background:linear-gradient(
-                                90deg,
-                                #3B82F6,
-                                #8B5CF6,
-                                #22C55E
-                            );
-                            border-radius:30px;
-                        ">
-                        </div>
-
-                    </div>
-
-                    <div style="
-                        display:flex;
-                        justify-content:space-between;
-                        margin-top:10px;
-                        color:#CBD5E1;
-                        font-size:14px;
-                    ">
-                        <span>Low Confidence</span>
-                        <span>High Confidence</span>
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            # =========================================================
-            # EMOTION DETECTION
-            # =========================================================
-
-            st.subheader(
-                "😊 Emotion Detection"
-            )
-
-            try:
-
-                emotions = te.get_emotion(
-                    translated_text
-                )
-
-                emotion_names = []
-                emotion_values = []
-
-                for k, v in emotions.items():
-
-                    if v > 0:
-
-                        emotion_names.append(k)
-                        emotion_values.append(v)
-
-                if len(emotion_names) == 0:
-
-                    st.info(
-                        "No strong emotions detected"
-                    )
-
-                else:
-
-                    st.markdown(
-                        """
-                        <div style="
-                            background:#F8FAFC;
-                            padding:20px;
-                            border-radius:20px;
-                            text-align:center;
-                        ">
-                            <h1 style="
-                                color:black;
-                                font-size:45px;
-                                font-weight:900;
-                            ">
-                                The Feelings Wheel
-                            </h1>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                    st.image(
-                        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Plutchik-wheel.svg/800px-Plutchik-wheel.svg.png",
-                        width=420
-                    )
-
-            except Exception as e:
-
-                st.warning(
-                    "Emotion detection unavailable"
-                )
-
-                st.code(
-                    str(e)
                 )
 
             # =========================================================
