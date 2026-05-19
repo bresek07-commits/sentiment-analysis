@@ -1,3 +1,7 @@
+# -------------------------------------------------
+# IMPORTS
+# -------------------------------------------------
+
 import streamlit as st
 import matplotlib.pyplot as plt
 import sqlite3
@@ -24,6 +28,35 @@ st.set_page_config(
     page_title="Advanced Sentiment Analysis AI",
     page_icon="🤖",
     layout="centered"
+)
+
+# -------------------------------------------------
+# CUSTOM CSS
+# -------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+
+    .stApp {
+        background-color: #0e1117;
+        color: white;
+    }
+
+    .main-title {
+        font-size: 50px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: #cfcfcf;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 # -------------------------------------------------
@@ -173,15 +206,17 @@ else:
         return translated
 
     # -------------------------------------------------
-    # APP TITLE
+    # APP HEADER
     # -------------------------------------------------
 
-    st.title(
-        "🤖 Advanced Sentiment Analysis AI"
+    st.markdown(
+        '<p class="main-title">🤖 Advanced Sentiment Analysis AI</p>',
+        unsafe_allow_html=True
     )
 
-    st.write(
-        "AI-powered multilingual sentiment and emotion analysis"
+    st.markdown(
+        '<p class="subtitle">AI-powered multilingual sentiment and emotion analysis</p>',
+        unsafe_allow_html=True
     )
 
     st.write(
@@ -247,7 +282,7 @@ else:
                 "🌍 Translated Text"
             )
 
-            st.write(
+            st.success(
                 translated_text
             )
 
@@ -338,31 +373,39 @@ else:
                 ]
 
             # -------------------------------------------------
-            # CONFIDENCE SCORE
+            # MODERN CONFIDENCE VISUALIZATION
             # -------------------------------------------------
 
             st.subheader(
                 "📊 Confidence Score"
             )
 
-            st.write(
-                f"{confidence}%"
+            st.metric(
+                label="Model Confidence",
+                value=f"{confidence}%"
             )
 
-            # -------------------------------------------------
-            # PIE CHART
-            # -------------------------------------------------
-
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(
+                figsize=(4, 4)
+            )
 
             ax.pie(
                 sizes,
                 labels=labels,
-                autopct='%1.1f%%'
+                autopct='%1.1f%%',
+                startangle=90,
+                wedgeprops={
+                    'width': 0.4
+                }
+            )
+
+            ax.set_title(
+                "Sentiment Distribution"
             )
 
             st.pyplot(
-                fig
+                fig,
+                use_container_width=False
             )
 
             # -------------------------------------------------
@@ -391,7 +434,9 @@ else:
                     emotions.values()
                 )
 
-                fig2, ax2 = plt.subplots()
+                fig2, ax2 = plt.subplots(
+                    figsize=(5, 3)
+                )
 
                 ax2.bar(
                     emotion_names,
@@ -475,23 +520,17 @@ else:
 
         for row in rows:
 
-            st.write(
-                f"📝 Text: {row[0]}"
-            )
+            st.info(
+                f"""
+                📝 Text: {row[0]}
 
-            st.write(
-                f"➡️ Sentiment: {row[1]}"
-            )
+                ➡️ Sentiment: {row[1]}
 
-            st.write(
-                f"📊 Confidence: {row[2]}%"
-            )
+                📊 Confidence: {row[2]}%
 
-            st.write(
-                f"⏰ Time: {row[3]}"
+                ⏰ Time: {row[3]}
+                """
             )
-
-            st.markdown("---")
 
     else:
 
@@ -544,6 +583,4 @@ else:
 
         for row in admin_rows:
 
-            st.write(
-                row
-            )
+            st.write(row)
