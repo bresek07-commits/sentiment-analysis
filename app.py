@@ -1,12 +1,20 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import sqlite3
+import nltk
 
 from transformers import pipeline
 from deep_translator import GoogleTranslator
 from streamlit_mic_recorder import speech_to_text
 
 import text2emotion as te
+
+# -------------------------------------------------
+# DOWNLOAD NLTK DATA
+# -------------------------------------------------
+
+nltk.download('punkt')
+nltk.download('punkt_tab')
 
 # -------------------------------------------------
 # PAGE CONFIG
