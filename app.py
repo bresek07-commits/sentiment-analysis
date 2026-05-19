@@ -39,10 +39,6 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* =========================================================
-MAIN APP
-========================================================= */
-
 .stApp {
     background: linear-gradient(
         135deg,
@@ -53,16 +49,11 @@ MAIN APP
     color: white;
 }
 
-/* =========================================================
-HEADINGS
-========================================================= */
-
 h1 {
     font-size: 58px !important;
     font-weight: 800 !important;
     color: white !important;
     text-align: center;
-    margin-bottom: 10px;
 }
 
 h2, h3 {
@@ -70,18 +61,10 @@ h2, h3 {
     font-weight: 700 !important;
 }
 
-/* =========================================================
-TEXT
-========================================================= */
-
 p, label {
     color: #d1d5db !important;
     font-size: 17px !important;
 }
-
-/* =========================================================
-TEXT AREA
-========================================================= */
 
 textarea {
     background-color: #1e293b !important;
@@ -91,10 +74,6 @@ textarea {
     padding: 18px !important;
     font-size: 18px !important;
 }
-
-/* =========================================================
-BUTTONS
-========================================================= */
 
 .stButton button {
 
@@ -119,20 +98,12 @@ BUTTONS
     font-weight: 700 !important;
 
     transition: 0.3s ease-in-out !important;
-
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .stButton button:hover {
 
     transform: scale(1.03);
-
-    box-shadow: 0 6px 25px rgba(59,130,246,0.4);
 }
-
-/* =========================================================
-CARDS
-========================================================= */
 
 .history-card {
 
@@ -147,21 +118,11 @@ CARDS
     margin-bottom: 20px;
 
     border: 1px solid rgba(255,255,255,0.08);
-
-    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
 }
-
-/* =========================================================
-SIDEBAR
-========================================================= */
 
 section[data-testid="stSidebar"] {
     background: #111827;
 }
-
-/* =========================================================
-METRIC
-========================================================= */
 
 [data-testid="metric-container"] {
 
@@ -173,10 +134,6 @@ METRIC
 
     border-radius: 18px;
 }
-
-/* =========================================================
-EXPANDER
-========================================================= */
 
 .streamlit-expanderHeader {
 
@@ -247,7 +204,7 @@ if "name" not in st.session_state:
     st.session_state.name = ""
 
 # =========================================================
-# LOGIN
+# LOGIN PAGE
 # =========================================================
 
 if not st.session_state.logged_in:
@@ -308,7 +265,6 @@ else:
     if st.sidebar.button("Logout"):
 
         st.session_state.logged_in = False
-
         st.rerun()
 
     # =========================================================
@@ -384,6 +340,7 @@ else:
         st.session_state.text_value = ""
 
     if voice_text:
+
         st.session_state.text_value = voice_text
 
         st.success(
@@ -391,7 +348,7 @@ else:
         )
 
     # =========================================================
-    # TEXT AREA
+    # TEXT INPUT
     # =========================================================
 
     user_input = st.text_area(
@@ -499,13 +456,13 @@ else:
             if label == "POSITIVE":
 
                 st.success(
-                    f"POSITIVE 😊"
+                    "POSITIVE 😊"
                 )
 
             else:
 
                 st.error(
-                    f"NEGATIVE 😔"
+                    "NEGATIVE 😔"
                 )
 
             # =========================================================
@@ -611,7 +568,7 @@ else:
 
                     if v > 0:
 
-                        emotion_names.append(k.capitalize())
+                        emotion_names.append(k)
                         emotion_values.append(v)
 
                 if len(emotion_names) == 0:
@@ -623,66 +580,43 @@ else:
                 else:
 
                     fig2, ax2 = plt.subplots(
-                        figsize=(8, 8)
+                        figsize=(4.5, 4.5)
                     )
 
                     colors = [
+                        "#FF6B6B",
                         "#FFD166",
-                        "#EF476F",
                         "#06D6A0",
                         "#118AB2",
                         "#9B5DE5"
                     ]
 
-                    wedges, texts = ax2.pie(
+                    ax2.pie(
                         emotion_values,
                         labels=emotion_names,
                         startangle=90,
-                        colors=colors[:len(emotion_names)],
-                        wedgeprops=dict(
-                            width=0.35,
-                            edgecolor='white'
-                        )
-                    )
-
-                    centre_circle = plt.Circle(
-                        (0, 0),
-                        0.45,
-                        fc='white'
-                    )
-
-                    fig2.gca().add_artist(
-                        centre_circle
+                        colors=colors,
+                        wedgeprops={
+                            'width': 0.35,
+                            'edgecolor': 'white'
+                        },
+                        textprops={
+                            'fontsize': 10
+                        }
                     )
 
                     plt.title(
-                        "The Feelings Wheel",
-                        fontsize=28,
+                        "Feelings Wheel",
+                        fontsize=18,
                         fontweight='bold'
                     )
 
                     ax2.axis('equal')
 
                     st.pyplot(
-                        fig2
+                        fig2,
+                        use_container_width=False
                     )
-
-                    st.markdown(
-                        "### 🎭 Emotion Breakdown"
-                    )
-
-                    for name, value in zip(
-                        emotion_names,
-                        emotion_values
-                    ):
-
-                        st.progress(
-                            float(value)
-                        )
-
-                        st.write(
-                            f"**{name}** — {value*100:.0f}%"
-                        )
 
             except Exception as e:
 
