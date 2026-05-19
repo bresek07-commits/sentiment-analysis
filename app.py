@@ -261,14 +261,15 @@ else:
     # TEXT INPUT
     # =========================================================
 
-    default_text = ""
+    if "text_value" not in st.session_state:
+        st.session_state.text_value = ""
 
     if voice_text:
-        default_text = voice_text
+        st.session_state.text_value = voice_text
 
     user_input = st.text_area(
         "Enter text",
-        value=default_text,
+        value=st.session_state.text_value,
         height=180
     )
 
@@ -394,9 +395,10 @@ else:
                 figsize=(8, 4)
             )
 
-            ax.axis('off')
+            ax.set_xlim(0, 100)
+            ax.set_ylim(0, 1)
 
-            sizes = [20, 20, 20, 20, 20]
+            ax.axis('off')
 
             colors = [
                 "#ff0000",
@@ -406,92 +408,62 @@ else:
                 "#33cc33"
             ]
 
-            wedges, _ = ax.pie(
-                sizes,
-                radius=1.2,
-                colors=colors,
-                startangle=180,
-                counterclock=False,
-                wedgeprops=dict(
-                    width=0.35,
-                    edgecolor='white'
+            ranges = [
+                (0, 20),
+                (20, 40),
+                (40, 60),
+                (60, 80),
+                (80, 100)
+            ]
+
+            for i, r in enumerate(ranges):
+
+                ax.barh(
+                    0.5,
+                    r[1] - r[0],
+                    left=r[0],
+                    height=0.3,
+                    color=colors[i]
                 )
-            )
-
-            circle = plt.Circle(
-                (0, 0),
-                0.75,
-                color='white'
-            )
-
-            ax.add_artist(circle)
-
-            angle = (180 * confidence / 100)
-
-            x = 0.8 * np.cos(
-                np.radians(180 - angle)
-            )
-
-            y = 0.8 * np.sin(
-                np.radians(180 - angle)
-            )
 
             ax.plot(
-                [0, x],
-                [0, y],
-                lw=4,
-                color='black'
-            )
-
-            ax.scatter(
-                0,
-                0,
-                s=200,
-                color='white',
-                edgecolors='black',
-                linewidths=3,
-                zorder=5
+                [confidence, confidence],
+                [0.3, 0.8],
+                color='black',
+                linewidth=5
             )
 
             ax.text(
-                -1.2,
-                -0.1,
-                "LOW",
-                fontsize=16,
+                confidence,
+                0.85,
+                f"{confidence:.2f}%",
+                ha='center',
+                fontsize=20,
                 fontweight='bold'
             )
 
             ax.text(
-                1.0,
-                -0.1,
+                0,
+                0.1,
+                "LOW",
+                fontsize=16
+            )
+
+            ax.text(
+                100,
+                0.1,
                 "HIGH",
                 fontsize=16,
-                fontweight='bold'
+                ha='right'
             )
 
-            ax.text(
-                0,
-                1.25,
+            plt.title(
                 "CONFIDENCE",
-                ha='center',
                 fontsize=24,
                 fontweight='bold'
             )
 
-            ax.text(
-                0,
-                -0.35,
-                f"{confidence:.2f}%",
-                ha='center',
-                fontsize=22,
-                fontweight='bold'
-            )
-
-            ax.set_aspect('equal')
-
-            st.pyplot(
-                fig
-            )
+            st.pyplot(fig)
 
             # =========================================================
             # EMOTION DETECTION
@@ -514,7 +486,7 @@ else:
 
                     if v > 0:
 
-                        emotion_names.append(k)
+                        emotion_names.append(k.capitalize())
                         emotion_values.append(v)
 
                 if len(emotion_names) == 0:
@@ -529,16 +501,28 @@ else:
                         figsize=(8, 8)
                     )
 
-                    ax2.pie(
+                    colors = [
+                        "#FFD166",
+                        "#EF476F",
+                        "#06D6A0",
+                        "#118AB2",
+                        "#9B5DE5"
+                    ]
+
+                    wedges, texts = ax2.pie(
                         emotion_values,
                         labels=emotion_names,
-                        autopct='%1.1f%%',
-                        startangle=90
+                        startangle=90,
+                        colors=colors[:len(emotion_names)],
+                        wedgeprops=dict(
+                            width=0.35,
+                            edgecolor='white'
+                        )
                     )
 
                     centre_circle = plt.Circle(
                         (0, 0),
-                        0.55,
+                        0.45,
                         fc='white'
                     )
 
@@ -547,14 +531,37 @@ else:
                     )
 
                     plt.title(
-                        "Emotion Wheel",
+                        "The Feelings Wheel",
                         fontsize=28,
                         fontweight='bold'
                     )
 
+                    ax2.axis('equal')
+
                     st.pyplot(
                         fig2
                     )
+
+                    # =========================================================
+                    # EMOTION BREAKDOWN
+                    # =========================================================
+
+                    st.markdown(
+                        "### 🎭 Emotion Breakdown"
+                    )
+
+                    for name, value in zip(
+                        emotion_names,
+                        emotion_values
+                    ):
+
+                        st.progress(
+                            float(value)
+                        )
+
+                        st.write(
+                            f"**{name}** — {value*100:.0f}%"
+                        )
 
             except Exception as e:
 
