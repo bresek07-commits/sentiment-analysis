@@ -233,19 +233,29 @@ else:
         key='voice'
     )
 
+    # -------------------------------------------------
+    # STORE VOICE TEXT
+    # -------------------------------------------------
+
+    if "voice_input" not in st.session_state:
+
+        st.session_state.voice_input = ""
+
     if voice_text:
+
+        st.session_state.voice_input = voice_text
 
         st.success("Voice recognized!")
 
         st.write(voice_text)
 
     # -------------------------------------------------
-    # USER INPUT
+    # TEXT INPUT
     # -------------------------------------------------
 
     user_input = st.text_area(
         "Enter text",
-        value=voice_text if voice_text else "",
+        value=st.session_state.voice_input,
         height=150
     )
 
@@ -255,7 +265,7 @@ else:
 
     if st.button("Analyze"):
 
-        if user_input.strip() == "":
+        if not user_input or user_input.strip() == "":
 
             st.warning(
                 "Please enter some text"
@@ -366,7 +376,7 @@ else:
                 ]
 
             # -------------------------------------------------
-            # MODERN CONFIDENCE VISUALIZATION
+            # CONFIDENCE SCORE
             # -------------------------------------------------
 
             st.subheader(
