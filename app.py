@@ -391,20 +391,107 @@ else:
             )
 
             fig, ax = plt.subplots(
-                figsize=(6, 3)
+                figsize=(8, 4)
             )
 
             ax.axis('off')
 
-            ax.text(
-                0.5,
-                0.5,
-                f"{confidence:.2f}%",
-                fontsize=40,
-                ha='center'
+            sizes = [20, 20, 20, 20, 20]
+
+            colors = [
+                "#ff0000",
+                "#ff6600",
+                "#ffcc00",
+                "#ccff00",
+                "#33cc33"
+            ]
+
+            wedges, _ = ax.pie(
+                sizes,
+                radius=1.2,
+                colors=colors,
+                startangle=180,
+                counterclock=False,
+                wedgeprops=dict(
+                    width=0.35,
+                    edgecolor='white'
+                )
             )
 
-            st.pyplot(fig)
+            circle = plt.Circle(
+                (0, 0),
+                0.75,
+                color='white'
+            )
+
+            ax.add_artist(circle)
+
+            angle = (180 * confidence / 100)
+
+            x = 0.8 * np.cos(
+                np.radians(180 - angle)
+            )
+
+            y = 0.8 * np.sin(
+                np.radians(180 - angle)
+            )
+
+            ax.plot(
+                [0, x],
+                [0, y],
+                lw=4,
+                color='black'
+            )
+
+            ax.scatter(
+                0,
+                0,
+                s=200,
+                color='white',
+                edgecolors='black',
+                linewidths=3,
+                zorder=5
+            )
+
+            ax.text(
+                -1.2,
+                -0.1,
+                "LOW",
+                fontsize=16,
+                fontweight='bold'
+            )
+
+            ax.text(
+                1.0,
+                -0.1,
+                "HIGH",
+                fontsize=16,
+                fontweight='bold'
+            )
+
+            ax.text(
+                0,
+                1.25,
+                "CONFIDENCE",
+                ha='center',
+                fontsize=24,
+                fontweight='bold'
+            )
+
+            ax.text(
+                0,
+                -0.35,
+                f"{confidence:.2f}%",
+                ha='center',
+                fontsize=22,
+                fontweight='bold'
+            )
+
+            ax.set_aspect('equal')
+
+            st.pyplot(
+                fig
+            )
 
             # =========================================================
             # EMOTION DETECTION
