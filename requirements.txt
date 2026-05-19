@@ -8,3 +8,4 @@ openai
 text2emotion
 emoji==1.7.0
 streamlit-mic-recorder
+scikit-learn
