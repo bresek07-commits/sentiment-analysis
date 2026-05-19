@@ -20,7 +20,7 @@ from streamlit_mic_recorder import speech_to_text
 # =========================================================
 
 nltk.download('punkt')
-nltk.download('punkt_tab')
+nltk.download('stopwords')
 
 # =========================================================
 # PAGE CONFIG
@@ -33,115 +33,77 @@ st.set_page_config(
 )
 
 # =========================================================
-# MODERN UI CSS
+# CUSTOM CSS
 # =========================================================
 
 st.markdown("""
 <style>
 
-.stApp {
-    background: linear-gradient(
-        135deg,
-        #0f172a,
-        #111827,
-        #020617
-    );
+html, body, [class*="css"] {
+    background-color: #050816;
     color: white;
+    font-family: 'Segoe UI';
+}
+
+.main {
+    background: linear-gradient(to bottom right, #050816, #0B1026);
 }
 
 h1 {
-    font-size: 58px !important;
+    font-size: 52px !important;
     font-weight: 800 !important;
-    color: white !important;
-    text-align: center;
+    color: white;
 }
 
 h2, h3 {
-    color: white !important;
-    font-weight: 700 !important;
+    color: white;
 }
 
-p, label {
-    color: #d1d5db !important;
-    font-size: 17px !important;
-}
-
-textarea {
-    background-color: #1e293b !important;
-    color: white !important;
-    border-radius: 16px !important;
-    border: 1px solid #334155 !important;
-    padding: 18px !important;
-    font-size: 18px !important;
+.stTextArea textarea {
+    background-color: #1E293B;
+    color: white;
+    border-radius: 15px;
+    border: 1px solid #334155;
+    font-size: 18px;
 }
 
 .stButton button {
-
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #7c3aed
-    ) !important;
-
-    color: white !important;
-
-    border: none !important;
-
-    border-radius: 14px !important;
-
-    height: 52px !important;
-
-    width: 170px !important;
-
-    font-size: 18px !important;
-
-    font-weight: 700 !important;
-
-    transition: 0.3s ease-in-out !important;
+    background: linear-gradient(90deg, #2563EB, #7C3AED);
+    color: white;
+    border-radius: 14px;
+    height: 55px;
+    width: 180px;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
 }
 
 .stButton button:hover {
-
     transform: scale(1.03);
+    transition: 0.3s;
+}
+
+.result-card {
+    padding: 20px;
+    border-radius: 18px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 .history-card {
-
-    background: rgba(30,41,59,0.7);
-
-    backdrop-filter: blur(12px);
-
-    padding: 25px;
-
-    border-radius: 22px;
-
-    margin-bottom: 20px;
-
-    border: 1px solid rgba(255,255,255,0.08);
+    background: #172554;
+    padding: 18px;
+    border-radius: 16px;
+    margin-bottom: 15px;
+    border-left: 5px solid #3B82F6;
 }
 
-section[data-testid="stSidebar"] {
-    background: #111827;
-}
-
-[data-testid="metric-container"] {
-
-    background-color: #1e293b;
-
-    border: 1px solid #334155;
-
+.metric-box {
+    background: linear-gradient(to right, #0F172A, #1E293B);
     padding: 20px;
-
     border-radius: 18px;
-}
-
-.streamlit-expanderHeader {
-
-    font-size: 22px !important;
-
-    font-weight: bold !important;
-
-    color: white !important;
+    text-align: center;
+    border: 1px solid #334155;
 }
 
 </style>
@@ -209,9 +171,7 @@ if "name" not in st.session_state:
 
 if not st.session_state.logged_in:
 
-    st.markdown("""
-    <h1>🔐 Login</h1>
-    """, unsafe_allow_html=True)
+    st.title("🔐 Login")
 
     username_input = st.text_input(
         "Username"
@@ -238,15 +198,11 @@ if not st.session_state.logged_in:
 
             else:
 
-                st.error(
-                    "Incorrect password"
-                )
+                st.error("Incorrect password")
 
         else:
 
-            st.error(
-                "User not found"
-            )
+            st.error("User not found")
 
 # =========================================================
 # MAIN APP
@@ -265,6 +221,9 @@ else:
     if st.sidebar.button("Logout"):
 
         st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.session_state.name = ""
+
         st.rerun()
 
     # =========================================================
@@ -297,29 +256,17 @@ else:
     # TITLE
     # =========================================================
 
-    st.markdown("""
-    <h1>
-    ✨ Advanced Sentiment Analysis AI
-    </h1>
-    """, unsafe_allow_html=True)
+    st.title(
+        "😊 Advanced Sentiment Analysis AI"
+    )
 
-    st.markdown("""
-    <div style='text-align:center; margin-bottom:30px;'>
+    st.write(
+        "AI-powered multilingual sentiment and emotion analysis"
+    )
 
-    <h4 style='color:#cbd5e1;'>
-
-    AI-powered multilingual sentiment and emotion analysis
-
-    </h4>
-
-    <p style='color:#94a3b8;'>
-
-    Supports English, Hindi, Urdu and more 🌍
-
-    </p>
-
-    </div>
-    """, unsafe_allow_html=True)
+    st.write(
+        "Supports English, Hindi, Urdu and more"
+    )
 
     # =========================================================
     # VOICE INPUT
@@ -336,24 +283,18 @@ else:
         key='voice'
     )
 
-    if "text_value" not in st.session_state:
-        st.session_state.text_value = ""
-
-    if voice_text:
-
-        st.session_state.text_value = voice_text
-
-        st.success(
-            "Voice recognized!"
-        )
-
     # =========================================================
     # TEXT INPUT
     # =========================================================
 
+    default_text = ""
+
+    if voice_text:
+        default_text = voice_text
+
     user_input = st.text_area(
         "Enter text",
-        value=st.session_state.text_value,
+        value=default_text if default_text else "",
         height=180
     )
 
@@ -419,17 +360,19 @@ else:
             label = prediction.upper()
 
             # =========================================================
-            # SAVE DATABASE
+            # SAVE HISTORY
             # =========================================================
 
             cursor.execute(
                 '''
                 INSERT INTO sentiment_history (
+
                     username,
                     original_text,
                     translated_text,
                     sentiment,
                     confidence
+
                 )
 
                 VALUES (?, ?, ?, ?, ?)
@@ -446,7 +389,7 @@ else:
             conn.commit()
 
             # =========================================================
-            # RESULT
+            # PREDICTION RESULT
             # =========================================================
 
             st.subheader(
@@ -456,13 +399,19 @@ else:
             if label == "POSITIVE":
 
                 st.success(
-                    "POSITIVE 😊"
+                    f"{label} 😊"
+                )
+
+            elif label == "NEGATIVE":
+
+                st.error(
+                    f"{label} 😔"
                 )
 
             else:
 
-                st.error(
-                    "NEGATIVE 😔"
+                st.info(
+                    f"{label} 😐"
                 )
 
             # =========================================================
@@ -474,75 +423,46 @@ else:
             )
 
             fig, ax = plt.subplots(
-                figsize=(8, 2)
+                figsize=(6, 3)
             )
 
-            ax.set_xlim(0, 100)
+            ax.set_xlim(-1, 1)
             ax.set_ylim(0, 1)
 
             ax.axis('off')
 
-            colors = [
-                "#ff0000",
-                "#ff6600",
-                "#ffcc00",
-                "#ccff00",
-                "#33cc33"
-            ]
+            confidence_ratio = confidence / 100
 
-            ranges = [
-                (0, 20),
-                (20, 40),
-                (40, 60),
-                (60, 80),
-                (80, 100)
-            ]
+            colors = ['red', 'orange', 'gold', 'yellowgreen', 'green']
 
-            for i, r in enumerate(ranges):
+            start = -1
 
-                ax.barh(
-                    0.5,
-                    r[1] - r[0],
-                    left=r[0],
-                    height=0.3,
-                    color=colors[i]
+            for color in colors:
+
+                ax.add_patch(
+                    plt.Circle(
+                        (0, 0),
+                        1,
+                        color=color,
+                        fill=False,
+                        linewidth=25
+                    )
                 )
 
-            ax.plot(
-                [confidence, confidence],
-                [0.3, 0.8],
-                color='black',
-                linewidth=5
-            )
+            needle_x = confidence_ratio * 2 - 1
 
-            ax.text(
-                confidence,
-                0.88,
-                f"{confidence:.1f}%",
-                ha='center',
-                fontsize=18,
-                fontweight='bold'
+            ax.plot(
+                [0, needle_x],
+                [0, 0.7],
+                linewidth=4
             )
 
             ax.text(
                 0,
-                0.1,
-                "LOW",
-                fontsize=14
-            )
-
-            ax.text(
-                100,
-                0.1,
-                "HIGH",
-                fontsize=14,
-                ha='right'
-            )
-
-            plt.title(
-                "CONFIDENCE",
-                fontsize=24,
-                fontweight='bold'
+                -0.1,
+                f"{confidence:.2f}%",
+                fontsize=28,
+                ha='center'
             )
 
             st.pyplot(fig)
@@ -580,7 +500,7 @@ else:
                 else:
 
                     fig2, ax2 = plt.subplots(
-                        figsize=(4.5, 4.5)
+                        figsize=(5, 5)
                     )
 
                     colors = [
@@ -591,37 +511,28 @@ else:
                         "#9B5DE5"
                     ]
 
-                    ax2.pie(
+                    wedges, texts = ax2.pie(
                         emotion_values,
                         labels=emotion_names,
-                        startangle=90,
                         colors=colors,
-                        wedgeprops={
-                            'width': 0.35,
-                            'edgecolor': 'white'
-                        },
-                        textprops={
-                            'fontsize': 10
-                        }
+                        startangle=90,
+                        wedgeprops=dict(width=0.35)
                     )
 
                     plt.title(
-                        "Feelings Wheel",
-                        fontsize=18,
+                        "The Feelings Wheel",
+                        fontsize=28,
                         fontweight='bold'
                     )
 
-                    ax2.axis('equal')
-
                     st.pyplot(
-                        fig2,
-                        use_container_width=False
+                        fig2
                     )
 
             except Exception as e:
 
                 st.warning(
-                    "Emotion detection currently unavailable"
+                    "Emotion detection unavailable"
                 )
 
                 st.code(
@@ -642,10 +553,16 @@ else:
                     "I'm sorry you're feeling upset. Hope things improve soon ❤️"
                 )
 
-            else:
+            elif label == "POSITIVE":
 
                 st.write(
                     "That's great to hear! Keep smiling 😀"
+                )
+
+            else:
+
+                st.write(
+                    "You seem calm and neutral 😐"
                 )
 
     # =========================================================
@@ -678,7 +595,7 @@ else:
         if len(rows) == 0:
 
             st.info(
-                "No prediction history found"
+                "No history found"
             )
 
         else:
@@ -707,10 +624,10 @@ else:
                 )
 
     # =========================================================
-    # ADMIN DASHBOARD
+    # ADMIN PANEL
     # =========================================================
 
-    if username == 'admin':
+    if username == "admin":
 
         st.subheader(
             "📊 Admin Dashboard"
@@ -729,3 +646,24 @@ else:
             "Total Predictions",
             total
         )
+
+        cursor.execute(
+            '''
+            SELECT
+                username,
+                original_text,
+                sentiment,
+                confidence,
+                created_at
+
+            FROM sentiment_history
+
+            ORDER BY id DESC
+            '''
+        )
+
+        rows = cursor.fetchall()
+
+        for row in rows:
+
+            st.write(row)
