@@ -412,11 +412,11 @@ else:
             )
 
             # -------------------------------------------------
-            # EMOTION DETECTION
+            # PROFESSIONAL EMOTION DETECTION
             # -------------------------------------------------
 
             st.subheader(
-                "😊 Emotion Detection"
+                "😊 Emotion Analysis Dashboard"
             )
 
             try:
@@ -425,34 +425,144 @@ else:
                     translated_text
                 )
 
-                st.write(
-                    emotions
-                )
+                # -----------------------------------------
+                # REMOVE ZERO VALUES
+                # -----------------------------------------
 
-                emotion_names = list(
-                    emotions.keys()
-                )
+                filtered_emotions = {
+                    k: v for k, v in emotions.items()
+                    if v > 0
+                }
 
-                emotion_values = list(
-                    emotions.values()
-                )
+                # -----------------------------------------
+                # NO EMOTION DETECTED
+                # -----------------------------------------
 
-                fig2, ax2 = plt.subplots(
-                    figsize=(5, 3)
-                )
+                if len(filtered_emotions) == 0:
 
-                ax2.bar(
-                    emotion_names,
-                    emotion_values
-                )
+                    st.info(
+                        "No strong emotions detected"
+                    )
 
-                ax2.set_ylabel(
-                    "Emotion Score"
-                )
+                else:
 
-                st.pyplot(
-                    fig2
-                )
+                    # -----------------------------------------
+                    # EMOTION CARDS
+                    # -----------------------------------------
+
+                    cols = st.columns(
+                        len(filtered_emotions)
+                    )
+
+                    for index, (emotion, value) in enumerate(
+                        filtered_emotions.items()
+                    ):
+
+                        percentage = round(
+                            value * 100,
+                            1
+                        )
+
+                        if emotion == "Happy":
+
+                            emoji = "😄"
+
+                            color = "#00C853"
+
+                        elif emotion == "Sad":
+
+                            emoji = "😢"
+
+                            color = "#FF5252"
+
+                        elif emotion == "Angry":
+
+                            emoji = "😡"
+
+                            color = "#FF6D00"
+
+                        elif emotion == "Fear":
+
+                            emoji = "😨"
+
+                            color = "#7E57C2"
+
+                        else:
+
+                            emoji = "😲"
+
+                            color = "#29B6F6"
+
+                        cols[index].markdown(
+                            f"""
+                            <div style="
+                                background:{color};
+                                padding:20px;
+                                border-radius:20px;
+                                text-align:center;
+                                color:white;
+                                box-shadow:0 4px 15px rgba(0,0,0,0.3);
+                            ">
+
+                            <h1>{emoji}</h1>
+
+                            <h3>{emotion}</h3>
+
+                            <h2>{percentage}%</h2>
+
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                    st.markdown(
+                        "<br>",
+                        unsafe_allow_html=True
+                    )
+
+                    # -----------------------------------------
+                    # MODERN DONUT CHART
+                    # -----------------------------------------
+
+                    fig3, ax3 = plt.subplots(
+                        figsize=(5, 5)
+                    )
+
+                    ax3.pie(
+
+                        filtered_emotions.values(),
+
+                        labels=filtered_emotions.keys(),
+
+                        autopct='%1.1f%%',
+
+                        startangle=90,
+
+                        wedgeprops={
+                            'width': 0.4
+                        }
+                    )
+
+                    centre_circle = plt.Circle(
+                        (0, 0),
+                        0.70,
+                        fc='white'
+                    )
+
+                    fig3.gca().add_artist(
+                        centre_circle
+                    )
+
+                    ax3.set_title(
+                        "Emotion Distribution",
+                        fontsize=16,
+                        fontweight='bold'
+                    )
+
+                    st.pyplot(
+                        fig3,
+                        use_container_width=False
+                    )
 
             except Exception as e:
 
