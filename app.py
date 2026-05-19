@@ -386,40 +386,52 @@ else:
                 "😊 Emotion Detection"
             )
 
-            emotions = te.get_emotion(
-                translated_text
-            )
+            try:
 
-            st.write(
-                emotions
-            )
+                emotions = te.get_emotion(
+                    translated_text
+                )
 
-            # -----------------------------------------
-            # EMOTION BAR CHART
-            # -----------------------------------------
+                st.write(
+                    emotions
+                )
 
-            emotion_names = list(
-                emotions.keys()
-            )
+                # -----------------------------------------
+                # EMOTION BAR CHART
+                # -----------------------------------------
 
-            emotion_values = list(
-                emotions.values()
-            )
+                emotion_names = list(
+                    emotions.keys()
+                )
 
-            fig2, ax2 = plt.subplots()
+                emotion_values = list(
+                    emotions.values()
+                )
 
-            ax2.bar(
-                emotion_names,
-                emotion_values
-            )
+                fig2, ax2 = plt.subplots()
 
-            ax2.set_ylabel(
-                "Emotion Score"
-            )
+                ax2.bar(
+                    emotion_names,
+                    emotion_values
+                )
 
-            st.pyplot(
-                fig2
-            )
+                ax2.set_ylabel(
+                    "Emotion Score"
+                )
+
+                st.pyplot(
+                    fig2
+                )
+
+            except Exception as e:
+
+                st.warning(
+                    "Emotion detection currently unavailable"
+                )
+
+                st.code(
+                    str(e)
+                )
 
             # -----------------------------------------
             # AI ASSISTANT
