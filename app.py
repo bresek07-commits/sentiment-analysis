@@ -12,10 +12,9 @@ from streamlit_mic_recorder import speech_to_text
 import nltk
 import pandas as pd
 import numpy as np
-from datetime import datetime
 
 # -------------------------------------------------
-# DOWNLOAD NLTK DATA
+# DOWNLOAD NLTK
 # -------------------------------------------------
 
 nltk.download('punkt')
@@ -56,9 +55,9 @@ st.markdown(
     .stButton button {
         background-color: #2563EB;
         color: white;
-        border-radius: 10px;
+        border-radius: 12px;
         border: none;
-        padding: 10px 20px;
+        padding: 12px 25px;
         font-size: 18px;
         font-weight: bold;
     }
@@ -68,7 +67,7 @@ st.markdown(
     }
 
     textarea {
-        border-radius: 10px !important;
+        border-radius: 12px !important;
     }
 
     </style>
@@ -115,15 +114,21 @@ conn.commit()
 # -------------------------------------------------
 
 USERS = {
+
     "azhar": {
         "name": "Azhar",
         "password": "1234"
     },
+
     "admin": {
         "name": "Admin",
         "password": "admin123"
     }
 }
+
+# -------------------------------------------------
+# SESSION STATES
+# -------------------------------------------------
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -133,6 +138,9 @@ if "username" not in st.session_state:
 
 if "name" not in st.session_state:
     st.session_state.name = ""
+
+if "text_value" not in st.session_state:
+    st.session_state.text_value = ""
 
 # -------------------------------------------------
 # LOGIN PAGE
@@ -230,19 +238,23 @@ else:
 
     if voice_text:
 
+        st.session_state.text_value = voice_text
+
         st.success("Voice recognized!")
 
         st.write(voice_text)
 
     # -------------------------------------------------
-    # USER INPUT
+    # TEXT AREA
     # -------------------------------------------------
 
     user_input = st.text_area(
         "Enter text",
-        value=voice_text if voice_text else "",
+        value=st.session_state.text_value,
         height=150
     )
+
+    st.session_state.text_value = user_input
 
     # -------------------------------------------------
     # ANALYZE BUTTON
@@ -257,7 +269,7 @@ else:
         else:
 
             # -------------------------------------------------
-            # TRANSLATE
+            # TRANSLATION
             # -------------------------------------------------
 
             translated_text = GoogleTranslator(
@@ -284,7 +296,7 @@ else:
             confidence = result[0]['score']
 
             # -------------------------------------------------
-            # SAVE TO DATABASE
+            # DATABASE SAVE
             # -------------------------------------------------
 
             cursor.execute(
@@ -349,7 +361,7 @@ else:
                 )
 
             # -------------------------------------------------
-            # PROFESSIONAL CONFIDENCE CHART
+            # CONFIDENCE CHART
             # -------------------------------------------------
 
             st.subheader("📈 Confidence Score")
@@ -421,10 +433,10 @@ else:
                 else:
 
                     # -------------------------------------------------
-                    # FEELINGS WHEEL STYLE CHART
+                    # FEELINGS WHEEL STYLE
                     # -------------------------------------------------
 
-                    fig, ax = plt.subplots(
+                    fig2, ax2 = plt.subplots(
                         figsize=(7, 7),
                         subplot_kw=dict(polar=True)
                     )
@@ -458,7 +470,7 @@ else:
                         "#9B5DE5"
                     ]
 
-                    ax.bar(
+                    ax2.bar(
                         angles,
                         emotion_values,
                         width=sizes,
@@ -469,17 +481,13 @@ else:
                         align='edge'
                     )
 
-                    # -------------------------------------------------
-                    # LABELS
-                    # -------------------------------------------------
-
                     for angle, label_name, value in zip(
                         angles,
                         emotion_labels,
                         emotion_values
                     ):
 
-                        ax.text(
+                        ax2.text(
                             angle + 0.2,
                             3.2,
                             f"{label_name}\n{round(value*100)}%",
@@ -490,29 +498,25 @@ else:
                             color='white'
                         )
 
-                    # -------------------------------------------------
-                    # STYLE
-                    # -------------------------------------------------
-
-                    ax.set_theta_offset(
+                    ax2.set_theta_offset(
                         np.pi / 2
                     )
 
-                    ax.set_theta_direction(-1)
+                    ax2.set_theta_direction(-1)
 
-                    ax.set_yticklabels([])
+                    ax2.set_yticklabels([])
 
-                    ax.set_xticklabels([])
+                    ax2.set_xticklabels([])
 
-                    ax.grid(False)
+                    ax2.grid(False)
 
-                    ax.spines['polar'].set_visible(False)
+                    ax2.spines['polar'].set_visible(False)
 
-                    fig.patch.set_facecolor("#0E1117")
+                    fig2.patch.set_facecolor("#0E1117")
 
-                    ax.set_facecolor("#0E1117")
+                    ax2.set_facecolor("#0E1117")
 
-                    st.pyplot(fig)
+                    st.pyplot(fig2)
 
             except Exception as e:
 
