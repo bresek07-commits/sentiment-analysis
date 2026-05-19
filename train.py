@@ -1,84 +1,34 @@
-import streamlit as st
-import joblib
-import re
-import nltk
+import pandas as pd
+import pickle
 
-from nltk.corpus import stopwords
-from deep_translator import GoogleTranslator
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
 
-# Download stopwords
-nltk.download('stopwords')
+# Load dataset
+df = pd.read_csv("reviews.csv")
 
-# Load model and vectorizer
-model = joblib.load("sentiment_model.pkl")
-vectorizer = joblib.load("tfidf_vectorizer.pkl")
+# Features
+X = df["review"]
 
-# Stopwords
-stop_words = set(stopwords.words('english'))
+# Labels
+y = df["sentiment"]
 
-# Cleaning function
-def clean_text(text):
+# Vectorizer
+vectorizer = TfidfVectorizer()
 
-    text = text.lower()
+X_vectorized = vectorizer.fit_transform(X)
 
-    text = re.sub(r'[^a-zA-Z]', ' ', text)
+# Train model
+model = MultinomialNB()
 
-    words = text.split()
+model.fit(X_vectorized, y)
 
-    words = [
-        word for word in words
-        if word not in stop_words
-    ]
+# Save model
+with open("sentiment_model.pkl", "wb") as f:
+    pickle.dump(model, f)
 
-    return " ".join(words)
+# Save vectorizer
+with open("tfidf_vectorizer.pkl", "wb") as f:
+    pickle.dump(vectorizer, f)
 
-# Translation function
-def translate_to_english(text):
-
-    translated = GoogleTranslator(
-        source='auto',
-        target='en'
-    ).translate(text)
-
-    return translated
-
-# Streamlit UI
-st.title("Multi-Language Sentiment Analysis App")
-
-st.write("Supports English, Hindi, Urdu and more")
-
-# User input
-user_input = st.text_area("Enter text")
-
-# Button
-if st.button("Analyze"):
-
-    # Translate text
-    translated_text = translate_to_english(user_input)
-
-    # Show translated text
-    st.subheader("Translated Text")
-    st.write(translated_text)
-
-    # Clean translated text
-    cleaned_text = clean_text(translated_text)
-
-    # Vectorize
-    vector = vectorizer.transform([cleaned_text])
-
-    # Predict
-    prediction = model.predict(vector)
-
-    sentiment = prediction[0]
-
-    # Show result
-    st.subheader("Sentiment Result")
-
-    if sentiment == "positive":
-        st.success("Positive 😀")
-
-    elif sentiment == "negative":
-        st.error("Negative 😞")
-
-    else:
-        st.info("Neutral 😐")
+print("Model trained successfully!")
