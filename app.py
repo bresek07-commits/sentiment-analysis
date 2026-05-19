@@ -43,12 +43,6 @@ st.markdown(
         color: white;
     }
 
-    .main-title {
-        font-size: 50px;
-        font-weight: bold;
-        color: white;
-    }
-
     .subtitle {
         font-size: 20px;
         color: #cfcfcf;
@@ -209,9 +203,8 @@ else:
     # APP HEADER
     # -------------------------------------------------
 
-    st.markdown(
-        '<p class="main-title">🤖 Advanced Sentiment Analysis AI</p>',
-        unsafe_allow_html=True
+    st.title(
+        "🤖 Advanced Sentiment Analysis AI"
     )
 
     st.markdown(
