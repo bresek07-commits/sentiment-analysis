@@ -1,26 +1,9 @@
 review,sentiment
-"I love this movie",positive
-"This is amazing",positive
-"Excellent work",positive
-"I really enjoyed this",positive
-"This product is fantastic",positive
-"I like this",positive
-"This is very good",positive
-"Super happy with this",positive
-"Today is a good day",positive
-"I feel great",positive
-"This makes me happy",positive
-"I hate this",negative
-"This is terrible",negative
-"Worst experience ever",negative
-"I dislike this",negative
-"This is bad",negative
-"Very disappointing",negative
-"I am unhappy",negative
-"Awful product",negative
-"This makes me sad",negative
-"It is okay",neutral
-"Average experience",neutral
-"Nothing special",neutral
-"It works fine",neutral
-"This is normal",neutral
+I love this app,positive
+This is amazing,positive
+I hate this,negative
+This is terrible,negative
+It's okay,neutral
+Nothing special,neutral
+I am fine,neutral
+Average experience,neutral
