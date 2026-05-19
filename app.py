@@ -8,9 +8,9 @@ import pandas as pd
 import numpy as np
 import pickle
 import sqlite3
-import matplotlib.pyplot as plt
 import nltk
 import text2emotion as te
+import matplotlib.pyplot as plt
 
 from deep_translator import GoogleTranslator
 from streamlit_mic_recorder import speech_to_text
@@ -40,13 +40,16 @@ st.markdown("""
 <style>
 
 html, body, [class*="css"] {
-    background-color: #050816;
-    color: white;
-    font-family: 'Segoe UI';
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .main {
-    background: linear-gradient(to bottom right, #050816, #0B1026);
+    background: linear-gradient(
+        135deg,
+        #0F172A,
+        #020617
+    );
+    color: white;
 }
 
 h1 {
@@ -56,54 +59,74 @@ h1 {
 }
 
 h2, h3 {
-    color: white;
+    color: white !important;
 }
 
 .stTextArea textarea {
-    background-color: #1E293B;
-    color: white;
-    border-radius: 15px;
-    border: 1px solid #334155;
-    font-size: 18px;
+    background-color: #1E293B !important;
+    color: white !important;
+    border-radius: 18px !important;
+    border: 1px solid #334155 !important;
+    font-size: 18px !important;
+    padding: 20px !important;
 }
 
 .stButton button {
-    background: linear-gradient(90deg, #2563EB, #7C3AED);
-    color: white;
-    border-radius: 14px;
-    height: 55px;
-    width: 180px;
-    font-size: 20px;
-    font-weight: bold;
-    border: none;
+    background: linear-gradient(
+        135deg,
+        #2563EB,
+        #7C3AED
+    ) !important;
+
+    color: white !important;
+
+    border: none !important;
+
+    border-radius: 15px !important;
+
+    height: 55px !important;
+
+    width: 170px !important;
+
+    font-size: 20px !important;
+
+    font-weight: 600 !important;
+
+    transition: 0.3s !important;
 }
 
 .stButton button:hover {
     transform: scale(1.03);
-    transition: 0.3s;
-}
-
-.result-card {
-    padding: 20px;
-    border-radius: 18px;
-    margin-top: 10px;
-    margin-bottom: 20px;
 }
 
 .history-card {
-    background: #172554;
-    padding: 18px;
-    border-radius: 16px;
-    margin-bottom: 15px;
-    border-left: 5px solid #3B82F6;
+
+    background: rgba(30,41,59,0.7);
+
+    border: 1px solid rgba(255,255,255,0.06);
+
+    padding: 20px;
+
+    border-radius: 20px;
+
+    margin-bottom: 18px;
+
+    backdrop-filter: blur(8px);
 }
 
-.metric-box {
-    background: linear-gradient(to right, #0F172A, #1E293B);
+.metric-card {
+
+    background: linear-gradient(
+        135deg,
+        rgba(59,130,246,0.15),
+        rgba(139,92,246,0.10)
+    );
+
     padding: 20px;
-    border-radius: 18px;
-    text-align: center;
-    border: 1px solid #334155;
+
+    border-radius: 20px;
+
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
 </style>
@@ -146,15 +169,21 @@ conn.commit()
 # =========================================================
 
 USERS = {
+
     "azhar": {
         "name": "Azhar",
         "password": "1234"
     },
+
     "admin": {
         "name": "Admin",
         "password": "admin123"
     }
 }
+
+# =========================================================
+# SESSION STATE
+# =========================================================
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -232,23 +261,25 @@ else:
 
     try:
 
-        model = pickle.load(
-            open('sentiment_model.pkl', 'rb')
-        )
+        with open(
+            'sentiment_model.pkl',
+            'rb'
+        ) as f:
 
-        vectorizer = pickle.load(
-            open('tfidf_vectorizer.pkl', 'rb')
-        )
+            model = pickle.load(f)
+
+        with open(
+            'tfidf_vectorizer.pkl',
+            'rb'
+        ) as f:
+
+            vectorizer = pickle.load(f)
 
     except Exception as e:
 
-        st.error(
-            "Model files not found."
-        )
+        st.error("Model files not found.")
 
-        st.code(
-            str(e)
-        )
+        st.code(str(e))
 
         st.stop()
 
@@ -272,9 +303,7 @@ else:
     # VOICE INPUT
     # =========================================================
 
-    st.subheader(
-        "🎤 Voice Input"
-    )
+    st.subheader("🎤 Voice Input")
 
     voice_text = speech_to_text(
         language='en',
@@ -282,6 +311,12 @@ else:
         just_once=True,
         key='voice'
     )
+
+    if voice_text:
+
+        st.success(
+            "Voice recognized!"
+        )
 
     # =========================================================
     # TEXT INPUT
@@ -294,17 +329,19 @@ else:
 
     user_input = st.text_area(
         "Enter text",
-        value=default_text if default_text else "",
+        value=default_text,
         height=180
     )
 
     # =========================================================
-    # ANALYZE
+    # ANALYZE BUTTON
     # =========================================================
 
     if st.button("Analyze"):
 
-        if user_input.strip() == "":
+        user_input = user_input.strip()
+
+        if not user_input:
 
             st.warning(
                 "Please enter some text"
@@ -313,7 +350,7 @@ else:
         else:
 
             # =========================================================
-            # TRANSLATION
+            # TRANSLATE
             # =========================================================
 
             try:
@@ -321,21 +358,15 @@ else:
                 translated_text = GoogleTranslator(
                     source='auto',
                     target='en'
-                ).translate(
-                    user_input
-                )
+                ).translate(user_input)
 
             except:
 
                 translated_text = user_input
 
-            st.subheader(
-                "🌍 Translated Text"
-            )
+            st.subheader("🌍 Translated Text")
 
-            st.success(
-                translated_text
-            )
+            st.success(translated_text)
 
             # =========================================================
             # PREDICTION
@@ -357,10 +388,10 @@ else:
                 probability
             ) * 100
 
-            label = prediction.upper()
+            label = str(prediction).upper()
 
             # =========================================================
-            # SAVE HISTORY
+            # DATABASE SAVE
             # =========================================================
 
             cursor.execute(
@@ -392,27 +423,19 @@ else:
             # PREDICTION RESULT
             # =========================================================
 
-            st.subheader(
-                "📌 Prediction"
-            )
+            st.subheader("📌 Prediction")
 
             if label == "POSITIVE":
 
-                st.success(
-                    f"{label} 😊"
-                )
+                st.success(f"{label} 😊")
 
             elif label == "NEGATIVE":
 
-                st.error(
-                    f"{label} 😔"
-                )
+                st.error(f"{label} 😔")
 
             else:
 
-                st.info(
-                    f"{label} 😐"
-                )
+                st.info(f"{label} 😐")
 
             # =========================================================
             # CONFIDENCE SCORE
@@ -422,50 +445,91 @@ else:
                 "📈 Confidence Score"
             )
 
-            fig, ax = plt.subplots(
-                figsize=(6, 3)
+            confidence_color = "#22C55E"
+
+            if confidence < 40:
+
+                confidence_color = "#EF4444"
+
+            elif confidence < 70:
+
+                confidence_color = "#F59E0B"
+
+            st.markdown(
+                f"""
+                <div style="
+                    background: linear-gradient(
+                        135deg,
+                        rgba(59,130,246,0.15),
+                        rgba(139,92,246,0.12)
+                    );
+                    padding: 35px;
+                    border-radius: 25px;
+                    border: 1px solid rgba(255,255,255,0.08);
+                    backdrop-filter: blur(10px);
+                    text-align: center;
+                    margin-bottom: 30px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+                ">
+
+                    <div style="
+                        font-size:75px;
+                        font-weight:800;
+                        color:{confidence_color};
+                        margin-bottom:10px;
+                    ">
+                        {confidence:.2f}%
+                    </div>
+
+                    <div style="
+                        width:100%;
+                        height:22px;
+                        background:#111827;
+                        border-radius:30px;
+                        overflow:hidden;
+                        margin-top:20px;
+                        border:1px solid rgba(255,255,255,0.06);
+                    ">
+
+                        <div style="
+                            width:{confidence}%;
+                            height:100%;
+                            border-radius:30px;
+                            background: linear-gradient(
+                                90deg,
+                                #3B82F6,
+                                #8B5CF6,
+                                #22C55E
+                            );
+                        ">
+                        </div>
+
+                    </div>
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        margin-top:10px;
+                        color:#94A3B8;
+                        font-size:14px;
+                    ">
+                        <span>Low Confidence</span>
+                        <span>High Confidence</span>
+                    </div>
+
+                    <p style="
+                        margin-top:18px;
+                        color:#E2E8F0;
+                        font-size:18px;
+                        font-weight:500;
+                    ">
+                        AI Prediction Confidence
+                    </p>
+
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-
-            ax.set_xlim(-1, 1)
-            ax.set_ylim(0, 1)
-
-            ax.axis('off')
-
-            confidence_ratio = confidence / 100
-
-            colors = ['red', 'orange', 'gold', 'yellowgreen', 'green']
-
-            start = -1
-
-            for color in colors:
-
-                ax.add_patch(
-                    plt.Circle(
-                        (0, 0),
-                        1,
-                        color=color,
-                        fill=False,
-                        linewidth=25
-                    )
-                )
-
-            needle_x = confidence_ratio * 2 - 1
-
-            ax.plot(
-                [0, needle_x],
-                [0, 0.7],
-                linewidth=4
-            )
-
-            ax.text(
-                0,
-                -0.1,
-                f"{confidence:.2f}%",
-                fontsize=28,
-                ha='center'
-            )
-
-            st.pyplot(fig)
 
             # =========================================================
             # EMOTION DETECTION
@@ -525,19 +589,15 @@ else:
                         fontweight='bold'
                     )
 
-                    st.pyplot(
-                        fig2
-                    )
+                    st.pyplot(fig2)
 
             except Exception as e:
 
                 st.warning(
-                    "Emotion detection unavailable"
+                    "Emotion detection currently unavailable"
                 )
 
-                st.code(
-                    str(e)
-                )
+                st.code(str(e))
 
             # =========================================================
             # AI ASSISTANT
@@ -595,7 +655,7 @@ else:
         if len(rows) == 0:
 
             st.info(
-                "No history found"
+                "No prediction history found"
             )
 
         else:
@@ -624,7 +684,7 @@ else:
                 )
 
     # =========================================================
-    # ADMIN PANEL
+    # ADMIN DASHBOARD
     # =========================================================
 
     if username == "admin":
