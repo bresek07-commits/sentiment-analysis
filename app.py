@@ -33,35 +33,158 @@ st.set_page_config(
 )
 
 # =========================================================
-# CUSTOM CSS
+# MODERN UI CSS
 # =========================================================
 
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0E1117;
+/* =========================================================
+MAIN APP
+========================================================= */
+
+.stApp {
+    background: linear-gradient(
+        135deg,
+        #0f172a,
+        #111827,
+        #020617
+    );
+    color: white;
 }
+
+/* =========================================================
+HEADINGS
+========================================================= */
 
 h1 {
-    font-size: 52px !important;
-    font-weight: bold;
+    font-size: 58px !important;
+    font-weight: 800 !important;
+    color: white !important;
+    text-align: center;
+    margin-bottom: 10px;
 }
+
+h2, h3 {
+    color: white !important;
+    font-weight: 700 !important;
+}
+
+/* =========================================================
+TEXT
+========================================================= */
+
+p, label {
+    color: #d1d5db !important;
+    font-size: 17px !important;
+}
+
+/* =========================================================
+TEXT AREA
+========================================================= */
+
+textarea {
+    background-color: #1e293b !important;
+    color: white !important;
+    border-radius: 16px !important;
+    border: 1px solid #334155 !important;
+    padding: 18px !important;
+    font-size: 18px !important;
+}
+
+/* =========================================================
+BUTTONS
+========================================================= */
 
 .stButton button {
-    background-color: #2563EB;
-    color: white;
-    border-radius: 10px;
-    height: 50px;
-    width: 140px;
-    font-size: 20px;
+
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    ) !important;
+
+    color: white !important;
+
+    border: none !important;
+
+    border-radius: 14px !important;
+
+    height: 52px !important;
+
+    width: 170px !important;
+
+    font-size: 18px !important;
+
+    font-weight: 700 !important;
+
+    transition: 0.3s ease-in-out !important;
+
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
+.stButton button:hover {
+
+    transform: scale(1.03);
+
+    box-shadow: 0 6px 25px rgba(59,130,246,0.4);
+}
+
+/* =========================================================
+CARDS
+========================================================= */
+
 .history-card {
-    background-color: #172B44;
+
+    background: rgba(30,41,59,0.7);
+
+    backdrop-filter: blur(12px);
+
+    padding: 25px;
+
+    border-radius: 22px;
+
+    margin-bottom: 20px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+/* =========================================================
+SIDEBAR
+========================================================= */
+
+section[data-testid="stSidebar"] {
+    background: #111827;
+}
+
+/* =========================================================
+METRIC
+========================================================= */
+
+[data-testid="metric-container"] {
+
+    background-color: #1e293b;
+
+    border: 1px solid #334155;
+
     padding: 20px;
-    border-radius: 15px;
-    margin-bottom: 15px;
+
+    border-radius: 18px;
+}
+
+/* =========================================================
+EXPANDER
+========================================================= */
+
+.streamlit-expanderHeader {
+
+    font-size: 22px !important;
+
+    font-weight: bold !important;
+
+    color: white !important;
 }
 
 </style>
@@ -100,7 +223,7 @@ CREATE TABLE IF NOT EXISTS sentiment_history (
 conn.commit()
 
 # =========================================================
-# SIMPLE LOGIN SYSTEM
+# USERS
 # =========================================================
 
 USERS = {
@@ -124,12 +247,14 @@ if "name" not in st.session_state:
     st.session_state.name = ""
 
 # =========================================================
-# LOGIN PAGE
+# LOGIN
 # =========================================================
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
+    st.markdown("""
+    <h1>🔐 Login</h1>
+    """, unsafe_allow_html=True)
 
     username_input = st.text_input(
         "Username"
@@ -184,10 +309,6 @@ else:
 
         st.session_state.logged_in = False
 
-        st.session_state.username = ""
-
-        st.session_state.name = ""
-
         st.rerun()
 
     # =========================================================
@@ -220,17 +341,29 @@ else:
     # TITLE
     # =========================================================
 
-    st.title(
-        "😊 Advanced Sentiment Analysis AI"
-    )
+    st.markdown("""
+    <h1>
+    ✨ Advanced Sentiment Analysis AI
+    </h1>
+    """, unsafe_allow_html=True)
 
-    st.write(
-        "AI-powered multilingual sentiment and emotion analysis"
-    )
+    st.markdown("""
+    <div style='text-align:center; margin-bottom:30px;'>
 
-    st.write(
-        "Supports English, Hindi, Urdu and more"
-    )
+    <h4 style='color:#cbd5e1;'>
+
+    AI-powered multilingual sentiment and emotion analysis
+
+    </h4>
+
+    <p style='color:#94a3b8;'>
+
+    Supports English, Hindi, Urdu and more 🌍
+
+    </p>
+
+    </div>
+    """, unsafe_allow_html=True)
 
     # =========================================================
     # VOICE INPUT
@@ -247,25 +380,19 @@ else:
         key='voice'
     )
 
-    if voice_text:
-
-        st.success(
-            "Voice recognized!"
-        )
-
-        st.write(
-            voice_text
-        )
-
-    # =========================================================
-    # TEXT INPUT
-    # =========================================================
-
     if "text_value" not in st.session_state:
         st.session_state.text_value = ""
 
     if voice_text:
         st.session_state.text_value = voice_text
+
+        st.success(
+            "Voice recognized!"
+        )
+
+    # =========================================================
+    # TEXT AREA
+    # =========================================================
 
     user_input = st.text_area(
         "Enter text",
@@ -274,7 +401,7 @@ else:
     )
 
     # =========================================================
-    # ANALYZE BUTTON
+    # ANALYZE
     # =========================================================
 
     if st.button("Analyze"):
@@ -308,7 +435,7 @@ else:
                 "🌍 Translated Text"
             )
 
-            st.write(
+            st.success(
                 translated_text
             )
 
@@ -335,19 +462,17 @@ else:
             label = prediction.upper()
 
             # =========================================================
-            # SAVE TO DATABASE
+            # SAVE DATABASE
             # =========================================================
 
             cursor.execute(
                 '''
                 INSERT INTO sentiment_history (
-
                     username,
                     original_text,
                     translated_text,
                     sentiment,
                     confidence
-
                 )
 
                 VALUES (?, ?, ?, ?, ?)
@@ -364,7 +489,7 @@ else:
             conn.commit()
 
             # =========================================================
-            # SENTIMENT RESULT
+            # RESULT
             # =========================================================
 
             st.subheader(
@@ -374,13 +499,13 @@ else:
             if label == "POSITIVE":
 
                 st.success(
-                    f"{label}"
+                    f"POSITIVE 😊"
                 )
 
             else:
 
                 st.error(
-                    f"{label}"
+                    f"NEGATIVE 😔"
                 )
 
             # =========================================================
@@ -392,7 +517,7 @@ else:
             )
 
             fig, ax = plt.subplots(
-                figsize=(8, 4)
+                figsize=(8, 2)
             )
 
             ax.set_xlim(0, 100)
@@ -435,10 +560,10 @@ else:
 
             ax.text(
                 confidence,
-                0.85,
-                f"{confidence:.2f}%",
+                0.88,
+                f"{confidence:.1f}%",
                 ha='center',
-                fontsize=20,
+                fontsize=18,
                 fontweight='bold'
             )
 
@@ -446,14 +571,14 @@ else:
                 0,
                 0.1,
                 "LOW",
-                fontsize=16
+                fontsize=14
             )
 
             ax.text(
                 100,
                 0.1,
                 "HIGH",
-                fontsize=16,
+                fontsize=14,
                 ha='right'
             )
 
@@ -542,10 +667,6 @@ else:
                         fig2
                     )
 
-                    # =========================================================
-                    # EMOTION BREAKDOWN
-                    # =========================================================
-
                     st.markdown(
                         "### 🎭 Emotion Breakdown"
                     )
@@ -574,7 +695,7 @@ else:
                 )
 
             # =========================================================
-            # AI RESPONSE
+            # AI ASSISTANT
             # =========================================================
 
             st.subheader(
@@ -594,7 +715,7 @@ else:
                 )
 
     # =========================================================
-    # PREDICTION HISTORY
+    # HISTORY
     # =========================================================
 
     with st.expander(
@@ -674,24 +795,3 @@ else:
             "Total Predictions",
             total
         )
-
-        cursor.execute(
-            '''
-            SELECT
-                username,
-                original_text,
-                sentiment,
-                confidence,
-                created_at
-
-            FROM sentiment_history
-
-            ORDER BY id DESC
-            '''
-        )
-
-        rows = cursor.fetchall()
-
-        for row in rows:
-
-            st.write(row)
