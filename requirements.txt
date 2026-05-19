@@ -3,8 +3,8 @@ transformers
 torch
 deep-translator
 matplotlib
-text2emotion
-emoji
-streamlit-authenticator
 SpeechRecognition
 openai
+text2emotion
+emoji==1.7.0
+streamlit-mic-recorder

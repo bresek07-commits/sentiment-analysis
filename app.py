@@ -1,12 +1,10 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import sqlite3
-import speech_recognition as sr
-import os
 
 from transformers import pipeline
 from deep_translator import GoogleTranslator
-from openai import OpenAI
+from streamlit_mic_recorder import speech_to_text
 
 import text2emotion as te
 
@@ -19,20 +17,6 @@ st.set_page_config(
     page_icon="🤖",
     layout="centered"
 )
-
-# -------------------------------------------------
-# OPENAI API SETUP
-# -------------------------------------------------
-
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-client = None
-
-if openai_api_key:
-
-    client = OpenAI(
-        api_key=openai_api_key
-    )
 
 # -------------------------------------------------
 # SIMPLE LOGIN SYSTEM
@@ -58,11 +42,17 @@ if "username" not in st.session_state:
 if "name" not in st.session_state:
     st.session_state.name = ""
 
+# -------------------------------------------------
+# LOGIN PAGE
+# -------------------------------------------------
+
 if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
-    username_input = st.text_input("Username")
+    username_input = st.text_input(
+        "Username"
+    )
 
     password_input = st.text_input(
         "Password",
@@ -85,11 +75,19 @@ if not st.session_state.logged_in:
 
             else:
 
-                st.error("Incorrect password")
+                st.error(
+                    "Incorrect password"
+                )
 
         else:
 
-            st.error("User not found")
+            st.error(
+                "User not found"
+            )
+
+# -------------------------------------------------
+# MAIN APP
+# -------------------------------------------------
 
 else:
 
@@ -97,7 +95,9 @@ else:
 
     name = st.session_state.name
 
-    st.sidebar.success(f"Welcome {name}")
+    st.sidebar.success(
+        f"Welcome {name}"
+    )
 
     if st.sidebar.button("Logout"):
 
@@ -184,45 +184,24 @@ else:
     # VOICE INPUT
     # -------------------------------------------------
 
-    st.subheader(
-        "🎤 Voice Input"
+    st.subheader("🎤 Voice Input")
+
+    voice_text = speech_to_text(
+
+        language='en',
+
+        use_container_width=True,
+
+        just_once=True,
+
+        key='voice'
     )
 
-    voice_text = ""
+    if voice_text:
 
-    if st.button("Start Voice Input"):
+        st.success("Voice recognized!")
 
-        recognizer = sr.Recognizer()
-
-        try:
-
-            with sr.Microphone() as source:
-
-                st.info(
-                    "Speak now..."
-                )
-
-                audio = recognizer.listen(
-                    source
-                )
-
-            voice_text = recognizer.recognize_google(
-                audio
-            )
-
-            st.success(
-                "Voice recognized!"
-            )
-
-            st.write(
-                voice_text
-            )
-
-        except:
-
-            st.error(
-                "Could not recognize voice"
-            )
+        st.write(voice_text)
 
     # -------------------------------------------------
     # USER INPUT
@@ -230,7 +209,7 @@ else:
 
     user_input = st.text_area(
         "Enter text",
-        value=voice_text,
+        value=voice_text if voice_text else "",
         height=150
     )
 
@@ -248,9 +227,9 @@ else:
 
         else:
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # TRANSLATE TEXT
-            # -----------------------------------------
+            # -------------------------------------------------
 
             translated_text = translate_to_english(
                 user_input
@@ -264,9 +243,9 @@ else:
                 translated_text
             )
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # SENTIMENT ANALYSIS
-            # -----------------------------------------
+            # -------------------------------------------------
 
             result = classifier(
                 translated_text
@@ -281,9 +260,9 @@ else:
                 2
             )
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # SAVE TO DATABASE
-            # -----------------------------------------
+            # -------------------------------------------------
 
             cursor.execute(
                 '''
@@ -310,9 +289,9 @@ else:
 
             conn.commit()
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # SENTIMENT RESULT
-            # -----------------------------------------
+            # -------------------------------------------------
 
             st.subheader(
                 "🧠 Sentiment Prediction"
@@ -350,9 +329,9 @@ else:
                     confidence
                 ]
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # CONFIDENCE SCORE
-            # -----------------------------------------
+            # -------------------------------------------------
 
             st.subheader(
                 "📊 Confidence Score"
@@ -362,9 +341,9 @@ else:
                 f"{confidence}%"
             )
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # PIE CHART
-            # -----------------------------------------
+            # -------------------------------------------------
 
             fig, ax = plt.subplots()
 
@@ -378,9 +357,9 @@ else:
                 fig
             )
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # EMOTION DETECTION
-            # -----------------------------------------
+            # -------------------------------------------------
 
             st.subheader(
                 "😊 Emotion Detection"
@@ -395,10 +374,6 @@ else:
                 st.write(
                     emotions
                 )
-
-                # -----------------------------------------
-                # EMOTION BAR CHART
-                # -----------------------------------------
 
                 emotion_names = list(
                     emotions.keys()
@@ -433,68 +408,30 @@ else:
                     str(e)
                 )
 
-            # -----------------------------------------
+            # -------------------------------------------------
             # AI ASSISTANT
-            # -----------------------------------------
+            # -------------------------------------------------
 
             st.subheader(
                 "🤖 AI Assistant"
             )
 
-            if client:
+            if label == "NEGATIVE":
 
-                if label == "NEGATIVE":
+                st.error(
+                    "I'm sorry you're feeling upset. Hope things improve soon. 💙"
+                )
 
-                    prompt = f"""
-                    The user feels upset.
+            elif label == "POSITIVE":
 
-                    User message:
-                    {translated_text}
-
-                    Respond politely and helpfully.
-                    """
-
-                else:
-
-                    prompt = f"""
-                    The user feels positive.
-
-                    User message:
-                    {translated_text}
-
-                    Respond in a friendly way.
-                    """
-
-                try:
-
-                    response = client.chat.completions.create(
-
-                        model="gpt-4.1-mini",
-
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": prompt
-                            }
-                        ]
-                    )
-
-                    bot_reply = response.choices[0].message.content
-
-                    st.write(
-                        bot_reply
-                    )
-
-                except Exception as e:
-
-                    st.error(
-                        f"OpenAI Error: {e}"
-                    )
+                st.success(
+                    "That's great to hear! Keep smiling 😀"
+                )
 
             else:
 
                 st.info(
-                    "OpenAI API key not configured"
+                    "Thank you for sharing your thoughts 🙂"
                 )
 
     # -------------------------------------------------
@@ -558,7 +495,7 @@ else:
     # ADMIN DASHBOARD
     # -------------------------------------------------
 
-    if username == 'admin':
+    if username == "admin":
 
         st.markdown("---")
 
@@ -595,13 +532,9 @@ else:
             '''
         )
 
-        rows = cursor.fetchall()
+        admin_rows = cursor.fetchall()
 
-        st.subheader(
-            "🗂 All Predictions"
-        )
-
-        for row in rows:
+        for row in admin_rows:
 
             st.write(
                 row
