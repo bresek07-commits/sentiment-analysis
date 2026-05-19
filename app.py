@@ -35,13 +35,27 @@ st.set_page_config(
 # LOAD MODEL
 # =========================================================
 
-model = pickle.load(
-    open('sentiment_model.pkl', 'rb')
-)
+try:
 
-vectorizer = pickle.load(
-    open('tfidf_vectorizer.pkl', 'rb')
-)
+    model = pickle.load(
+        open('sentiment_model.pkl', 'rb')
+    )
+
+    vectorizer = pickle.load(
+        open('tfidf_vectorizer.pkl', 'rb')
+    )
+
+except Exception as e:
+
+    st.error(
+        "Model files not found."
+    )
+
+    st.code(
+        str(e)
+    )
+
+    st.stop()
 
 # =========================================================
 # DATABASE
@@ -236,7 +250,7 @@ else:
         else:
 
             # =============================================
-            # TRANSLATION
+            # TRANSLATE TEXT
             # =============================================
 
             try:
@@ -307,7 +321,7 @@ else:
                 )
 
             # =============================================
-            # CONFIDENCE SCORE
+            # CONFIDENCE GAUGE
             # =============================================
 
             st.subheader(
@@ -407,10 +421,6 @@ else:
                     emotion_df,
                     use_container_width=True
                 )
-
-                # =========================================
-                # EMOTION WHEEL STYLE CHART
-                # =========================================
 
                 fig2, ax2 = plt.subplots(
                     figsize=(7, 7)
@@ -524,7 +534,7 @@ else:
             conn.commit()
 
     # =====================================================
-    # HISTORY SECTION
+    # HISTORY
     # =====================================================
 
     with st.expander(
