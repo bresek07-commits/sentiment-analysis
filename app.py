@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 import pickle
 import sqlite3
-import matplotlib.pyplot as plt
 import nltk
 import text2emotion as te
 
@@ -39,8 +38,6 @@ st.markdown("""
 <style>
 
 html, body, [class*="css"] {
-    background-color: #020617;
-    color: white;
     font-family: 'Segoe UI', sans-serif;
 }
 
@@ -51,69 +48,85 @@ html, body, [class*="css"] {
         #071129,
         #020617
     );
+    color: white;
 }
 
 h1 {
-    font-size: 58px !important;
+    font-size: 56px !important;
     font-weight: 800 !important;
-    color: white;
-    margin-bottom: 10px;
+    color: white !important;
 }
 
 h2, h3 {
     color: white !important;
 }
 
-.stButton button {
-    background: linear-gradient(
-        135deg,
-        #2563EB,
-        #7C3AED
-    );
-    color: white;
-    border: none;
-    border-radius: 16px;
-    height: 58px;
-    width: 220px;
-    font-size: 22px;
-    font-weight: 700;
-    transition: 0.3s;
-    box-shadow: 0 8px 25px rgba(59,130,246,0.3);
-}
-
-.stButton button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(124,58,237,0.4);
-}
-
-textarea {
+.stTextArea textarea {
     background-color: #1E293B !important;
     color: white !important;
     border-radius: 18px !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
+    border: 2px solid #334155 !important;
+    padding: 20px !important;
     font-size: 18px !important;
+}
+
+.stButton button {
+    background: linear-gradient(
+        90deg,
+        #2563EB,
+        #7C3AED
+    );
+    color: white !important;
+    border: none !important;
+    border-radius: 18px !important;
+    height: 60px !important;
+    width: 230px !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    transition: 0.3s !important;
+}
+
+.stButton button:hover {
+    transform: scale(1.03);
 }
 
 .history-card {
     background: linear-gradient(
         135deg,
-        rgba(30,41,59,0.95),
-        rgba(15,23,42,0.95)
+        #172554,
+        #1E293B
     );
-    padding: 22px;
+    padding: 25px;
     border-radius: 20px;
-    margin-bottom: 18px;
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
 }
 
-.result-card {
+.prediction-positive {
+    background: rgba(34,197,94,0.2);
     padding: 20px;
     border-radius: 18px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    font-size: 22px;
-    font-weight: 700;
+    color: #4ADE80;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.prediction-negative {
+    background: rgba(239,68,68,0.2);
+    padding: 20px;
+    border-radius: 18px;
+    color: #F87171;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.prediction-neutral {
+    background: rgba(59,130,246,0.2);
+    padding: 20px;
+    border-radius: 18px;
+    color: #60A5FA;
+    font-size: 28px;
+    font-weight: bold;
 }
 
 </style>
@@ -167,7 +180,7 @@ USERS = {
 }
 
 # =========================================================
-# SESSION STATE
+# SESSION
 # =========================================================
 
 if "logged_in" not in st.session_state:
@@ -212,15 +225,11 @@ if not st.session_state.logged_in:
 
             else:
 
-                st.error(
-                    "Incorrect password"
-                )
+                st.error("Incorrect password")
 
         else:
 
-            st.error(
-                "User not found"
-            )
+            st.error("User not found")
 
 # =========================================================
 # MAIN APP
@@ -239,9 +248,7 @@ else:
     if st.sidebar.button("Logout"):
 
         st.session_state.logged_in = False
-
         st.session_state.username = ""
-
         st.session_state.name = ""
 
         st.rerun()
@@ -273,18 +280,20 @@ else:
         st.stop()
 
     # =========================================================
-    # HEADER
+    # TITLE
     # =========================================================
 
     st.title(
         "😊 Advanced Sentiment Analysis AI"
     )
 
-    st.markdown("""
-    ### AI-powered multilingual sentiment and emotion analysis
+    st.write(
+        "AI-powered multilingual sentiment and emotion analysis"
+    )
 
-    Supports English, Hindi, Urdu and more 🌍
-    """)
+    st.write(
+        "Supports English, Hindi, Urdu and more"
+    )
 
     # =========================================================
     # VOICE INPUT
@@ -301,20 +310,19 @@ else:
         key='voice'
     )
 
+    default_text = ""
+
     if voice_text:
 
         st.success(
             "Voice recognized successfully!"
         )
 
+        default_text = voice_text
+
     # =========================================================
     # TEXT AREA
     # =========================================================
-
-    default_text = ""
-
-    if voice_text:
-        default_text = voice_text
 
     user_input = st.text_area(
         "Enter text",
@@ -381,7 +389,7 @@ else:
                 probability
             ) * 100
 
-            label = str(prediction).upper()
+            label = prediction.upper()
 
             # =========================================================
             # SAVE HISTORY
@@ -413,7 +421,7 @@ else:
             conn.commit()
 
             # =========================================================
-            # PREDICTION RESULT
+            # PREDICTION UI
             # =========================================================
 
             st.subheader(
@@ -422,15 +430,36 @@ else:
 
             if label == "POSITIVE":
 
-                st.success(f"{label} 😊")
+                st.markdown(
+                    f"""
+                    <div class="prediction-positive">
+                        POSITIVE 😊
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
             elif label == "NEGATIVE":
 
-                st.error(f"{label} 😔")
+                st.markdown(
+                    f"""
+                    <div class="prediction-negative">
+                        NEGATIVE 😔
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
             else:
 
-                st.info(f"{label} 😐")
+                st.markdown(
+                    f"""
+                    <div class="prediction-neutral">
+                        NEUTRAL 😐
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
             # =========================================================
             # CONFIDENCE SCORE
@@ -443,11 +472,9 @@ else:
             confidence_color = "#22C55E"
 
             if confidence < 40:
-
                 confidence_color = "#EF4444"
 
             elif confidence < 70:
-
                 confidence_color = "#F59E0B"
 
             st.markdown(
@@ -455,28 +482,28 @@ else:
                 <div style="
                     background: linear-gradient(
                         135deg,
-                        rgba(30,41,59,0.95),
-                        rgba(15,23,42,0.95)
+                        #172554,
+                        #1E293B
                     );
                     padding:40px;
-                    border-radius:28px;
-                    border:1px solid rgba(255,255,255,0.08);
-                    box-shadow:0 10px 40px rgba(0,0,0,0.35);
-                    margin-bottom:35px;
+                    border-radius:25px;
+                    margin-top:20px;
+                    margin-bottom:30px;
                     text-align:center;
+                    box-shadow:0 10px 30px rgba(0,0,0,0.4);
                 ">
 
                     <div style="
-                        color:#E2E8F0;
+                        color:white;
                         font-size:24px;
                         font-weight:700;
-                        margin-bottom:25px;
+                        margin-bottom:20px;
                     ">
                         AI Prediction Confidence
                     </div>
 
                     <div style="
-                        font-size:82px;
+                        font-size:80px;
                         font-weight:900;
                         color:{confidence_color};
                         margin-bottom:25px;
@@ -486,23 +513,22 @@ else:
 
                     <div style="
                         width:100%;
-                        height:24px;
                         background:#0F172A;
-                        border-radius:40px;
+                        height:24px;
+                        border-radius:30px;
                         overflow:hidden;
-                        border:1px solid rgba(255,255,255,0.06);
                     ">
 
                         <div style="
                             width:{confidence}%;
                             height:100%;
-                            border-radius:40px;
                             background:linear-gradient(
                                 90deg,
                                 #3B82F6,
                                 #8B5CF6,
                                 #22C55E
                             );
+                            border-radius:30px;
                         ">
                         </div>
 
@@ -511,8 +537,8 @@ else:
                     <div style="
                         display:flex;
                         justify-content:space-between;
-                        margin-top:12px;
-                        color:#94A3B8;
+                        margin-top:10px;
+                        color:#CBD5E1;
                         font-size:14px;
                     ">
                         <span>Low Confidence</span>
@@ -556,36 +582,30 @@ else:
 
                 else:
 
-                    fig2, ax2 = plt.subplots(
-                        figsize=(5, 5)
+                    st.markdown(
+                        """
+                        <div style="
+                            background:#F8FAFC;
+                            padding:20px;
+                            border-radius:20px;
+                            text-align:center;
+                        ">
+                            <h1 style="
+                                color:black;
+                                font-size:45px;
+                                font-weight:900;
+                            ">
+                                The Feelings Wheel
+                            </h1>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
                     )
 
-                    colors = [
-                        "#FF6B6B",
-                        "#FFD166",
-                        "#06D6A0",
-                        "#118AB2",
-                        "#9B5DE5"
-                    ]
-
-                    ax2.pie(
-                        emotion_values,
-                        labels=emotion_names,
-                        colors=colors,
-                        startangle=90,
-                        wedgeprops={
-                            'width': 0.38,
-                            'edgecolor': 'white'
-                        }
+                    st.image(
+                        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Plutchik-wheel.svg/800px-Plutchik-wheel.svg.png",
+                        width=420
                     )
-
-                    plt.title(
-                        "The Feelings Wheel",
-                        fontsize=28,
-                        fontweight='bold'
-                    )
-
-                    st.pyplot(fig2)
 
             except Exception as e:
 
@@ -653,7 +673,7 @@ else:
         if len(rows) == 0:
 
             st.info(
-                "No prediction history found"
+                "No history found"
             )
 
         else:
@@ -682,7 +702,7 @@ else:
                 )
 
     # =========================================================
-    # ADMIN PANEL
+    # ADMIN DASHBOARD
     # =========================================================
 
     if username == "admin":
