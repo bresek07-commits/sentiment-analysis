@@ -3,22 +3,22 @@
 # -------------------------------------------------
 
 import streamlit as st
+from transformers import pipeline
 import matplotlib.pyplot as plt
 import sqlite3
-import nltk
-
-from transformers import pipeline
 from deep_translator import GoogleTranslator
-from streamlit_mic_recorder import speech_to_text
-
 import text2emotion as te
+from streamlit_mic_recorder import speech_to_text
+import nltk
+import pandas as pd
+import numpy as np
+from datetime import datetime
 
 # -------------------------------------------------
 # DOWNLOAD NLTK DATA
 # -------------------------------------------------
 
 nltk.download('punkt')
-nltk.download('punkt_tab')
 
 # -------------------------------------------------
 # PAGE CONFIG
@@ -26,7 +26,7 @@ nltk.download('punkt_tab')
 
 st.set_page_config(
     page_title="Advanced Sentiment Analysis AI",
-    page_icon="🤖",
+    page_icon="🧠",
     layout="centered"
 )
 
@@ -38,20 +38,77 @@ st.markdown(
     """
     <style>
 
-    .stApp {
-        background-color: #0e1117;
+    .main {
+        background-color: #0E1117;
         color: white;
     }
 
-    .subtitle {
-        font-size: 20px;
-        color: #cfcfcf;
+    h1 {
+        font-size: 52px !important;
+        font-weight: bold;
+        color: white;
+    }
+
+    h2, h3 {
+        color: white;
+    }
+
+    .stButton button {
+        background-color: #2563EB;
+        color: white;
+        border-radius: 10px;
+        border: none;
+        padding: 10px 20px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .stButton button:hover {
+        background-color: #1D4ED8;
+    }
+
+    textarea {
+        border-radius: 10px !important;
     }
 
     </style>
     """,
     unsafe_allow_html=True
 )
+
+# -------------------------------------------------
+# DATABASE
+# -------------------------------------------------
+
+conn = sqlite3.connect(
+    'sentiment.db',
+    check_same_thread=False
+)
+
+cursor = conn.cursor()
+
+cursor.execute(
+    '''
+    CREATE TABLE IF NOT EXISTS sentiment_history (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        username TEXT,
+
+        original_text TEXT,
+
+        translated_text TEXT,
+
+        sentiment TEXT,
+
+        confidence REAL,
+
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    '''
+)
+
+conn.commit()
 
 # -------------------------------------------------
 # SIMPLE LOGIN SYSTEM
@@ -85,9 +142,7 @@ if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
-    username_input = st.text_input(
-        "Username"
-    )
+    username_input = st.text_input("Username")
 
     password_input = st.text_input(
         "Password",
@@ -110,15 +165,11 @@ if not st.session_state.logged_in:
 
             else:
 
-                st.error(
-                    "Incorrect password"
-                )
+                st.error("Incorrect password")
 
         else:
 
-            st.error(
-                "User not found"
-            )
+            st.error("User not found")
 
 # -------------------------------------------------
 # MAIN APP
@@ -130,9 +181,7 @@ else:
 
     name = st.session_state.name
 
-    st.sidebar.success(
-        f"Welcome {name}"
-    )
+    st.sidebar.success(f"Welcome {name}")
 
     if st.sidebar.button("Logout"):
 
@@ -145,75 +194,25 @@ else:
         st.rerun()
 
     # -------------------------------------------------
-    # DATABASE SETUP
+    # TITLE
     # -------------------------------------------------
 
-    conn = sqlite3.connect(
-        'sentiment.db',
-        check_same_thread=False
-    )
+    st.title("🧠 Advanced Sentiment Analysis AI")
 
-    cursor = conn.cursor()
-
-    cursor.execute(
-        '''
-        CREATE TABLE IF NOT EXISTS sentiment_history (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            username TEXT,
-
-            original_text TEXT,
-
-            translated_text TEXT,
-
-            sentiment TEXT,
-
-            confidence REAL,
-
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        '''
-    )
-
-    conn.commit()
-
-    # -------------------------------------------------
-    # LOAD AI MODEL
-    # -------------------------------------------------
-
-    classifier = pipeline(
-        "sentiment-analysis"
-    )
-
-    # -------------------------------------------------
-    # TRANSLATION FUNCTION
-    # -------------------------------------------------
-
-    def translate_to_english(text):
-
-        translated = GoogleTranslator(
-            source='auto',
-            target='en'
-        ).translate(text)
-
-        return translated
-
-    # -------------------------------------------------
-    # APP HEADER
-    # -------------------------------------------------
-
-    st.title(
-        "🤖 Advanced Sentiment Analysis AI"
-    )
-
-    st.markdown(
-        '<p class="subtitle">AI-powered multilingual sentiment and emotion analysis</p>',
-        unsafe_allow_html=True
+    st.write(
+        "AI-powered multilingual sentiment and emotion analysis"
     )
 
     st.write(
         "Supports English, Hindi, Urdu and more"
+    )
+
+    # -------------------------------------------------
+    # LOAD MODEL
+    # -------------------------------------------------
+
+    classifier = pipeline(
+        "sentiment-analysis"
     )
 
     # -------------------------------------------------
@@ -223,39 +222,25 @@ else:
     st.subheader("🎤 Voice Input")
 
     voice_text = speech_to_text(
-
         language='en',
-
         use_container_width=True,
-
         just_once=True,
-
         key='voice'
     )
 
-    # -------------------------------------------------
-    # STORE VOICE TEXT
-    # -------------------------------------------------
-
-    if "voice_input" not in st.session_state:
-
-        st.session_state.voice_input = ""
-
     if voice_text:
-
-        st.session_state.voice_input = voice_text
 
         st.success("Voice recognized!")
 
         st.write(voice_text)
 
     # -------------------------------------------------
-    # TEXT INPUT
+    # USER INPUT
     # -------------------------------------------------
 
     user_input = st.text_area(
         "Enter text",
-        value=st.session_state.voice_input,
+        value=voice_text if voice_text else "",
         height=150
     )
 
@@ -265,29 +250,26 @@ else:
 
     if st.button("Analyze"):
 
-        if not user_input or user_input.strip() == "":
+        if user_input.strip() == "":
 
-            st.warning(
-                "Please enter some text"
-            )
+            st.warning("Please enter some text")
 
         else:
 
             # -------------------------------------------------
-            # TRANSLATE TEXT
+            # TRANSLATE
             # -------------------------------------------------
 
-            translated_text = translate_to_english(
+            translated_text = GoogleTranslator(
+                source='auto',
+                target='en'
+            ).translate(
                 user_input
             )
 
-            st.subheader(
-                "🌍 Translated Text"
-            )
+            st.subheader("🌍 Translated Text")
 
-            st.success(
-                translated_text
-            )
+            st.info(translated_text)
 
             # -------------------------------------------------
             # SENTIMENT ANALYSIS
@@ -299,12 +281,7 @@ else:
 
             label = result[0]['label']
 
-            score = result[0]['score']
-
-            confidence = round(
-                score * 100,
-                2
-            )
+            confidence = result[0]['score']
 
             # -------------------------------------------------
             # SAVE TO DATABASE
@@ -336,65 +313,77 @@ else:
             conn.commit()
 
             # -------------------------------------------------
-            # SENTIMENT RESULT
+            # RESULT
             # -------------------------------------------------
 
-            st.subheader(
-                "🧠 Sentiment Prediction"
-            )
+            st.subheader("📊 Sentiment Result")
 
             if label == "POSITIVE":
 
                 st.success(
-                    "Positive 😀"
+                    f"Positive 😀 ({round(confidence * 100, 2)}%)"
                 )
-
-                labels = [
-                    'Positive',
-                    'Negative'
-                ]
-
-                sizes = [
-                    confidence,
-                    100 - confidence
-                ]
 
             else:
 
                 st.error(
-                    "Negative 😞"
+                    f"Negative 😔 ({round(confidence * 100, 2)}%)"
                 )
 
-                labels = [
-                    'Positive',
-                    'Negative'
-                ]
-
-                sizes = [
-                    100 - confidence,
-                    confidence
-                ]
-
             # -------------------------------------------------
-            # CONFIDENCE SCORE
+            # AI RESPONSE
             # -------------------------------------------------
 
-            st.subheader(
-                "📊 Confidence Score"
-            )
+            st.subheader("🤖 AI Assistant")
 
-            st.metric(
-                label="Model Confidence",
-                value=f"{confidence}%"
-            )
+            if label == "NEGATIVE":
 
-            fig, ax = plt.subplots(
+                st.warning(
+                    "I'm sorry you're feeling upset. Hope things improve soon ❤️"
+                )
+
+            else:
+
+                st.success(
+                    "That's great to hear! Keep smiling 😀"
+                )
+
+            # -------------------------------------------------
+            # PROFESSIONAL CONFIDENCE CHART
+            # -------------------------------------------------
+
+            st.subheader("📈 Confidence Score")
+
+            positive_score = confidence * 100
+
+            negative_score = 100 - positive_score
+
+            chart_labels = [
+                "Positive",
+                "Negative"
+            ]
+
+            if label == "NEGATIVE":
+
+                chart_values = [
+                    negative_score,
+                    positive_score
+                ]
+
+            else:
+
+                chart_values = [
+                    positive_score,
+                    negative_score
+                ]
+
+            fig1, ax1 = plt.subplots(
                 figsize=(4, 4)
             )
 
-            ax.pie(
-                sizes,
-                labels=labels,
+            ax1.pie(
+                chart_values,
+                labels=chart_labels,
                 autopct='%1.1f%%',
                 startangle=90,
                 wedgeprops={
@@ -402,22 +391,15 @@ else:
                 }
             )
 
-            ax.set_title(
-                "Sentiment Distribution"
-            )
+            ax1.axis('equal')
 
-            st.pyplot(
-                fig,
-                use_container_width=False
-            )
+            st.pyplot(fig1)
 
             # -------------------------------------------------
-            # PROFESSIONAL EMOTION DETECTION
+            # EMOTION DETECTION
             # -------------------------------------------------
 
-            st.subheader(
-                "😊 Emotion Analysis Dashboard"
-            )
+            st.subheader("😊 Emotion Detection")
 
             try:
 
@@ -425,144 +407,112 @@ else:
                     translated_text
                 )
 
-                # -----------------------------------------
-                # REMOVE ZERO VALUES
-                # -----------------------------------------
-
-                filtered_emotions = {
+                emotions = {
                     k: v for k, v in emotions.items()
                     if v > 0
                 }
 
-                # -----------------------------------------
-                # NO EMOTION DETECTED
-                # -----------------------------------------
-
-                if len(filtered_emotions) == 0:
+                if len(emotions) == 0:
 
                     st.info(
-                        "No strong emotions detected"
+                        "No strong emotion detected"
                     )
 
                 else:
 
-                    # -----------------------------------------
-                    # EMOTION CARDS
-                    # -----------------------------------------
+                    # -------------------------------------------------
+                    # FEELINGS WHEEL STYLE CHART
+                    # -------------------------------------------------
 
-                    cols = st.columns(
-                        len(filtered_emotions)
+                    fig, ax = plt.subplots(
+                        figsize=(7, 7),
+                        subplot_kw=dict(polar=True)
                     )
 
-                    for index, (emotion, value) in enumerate(
-                        filtered_emotions.items()
+                    emotion_labels = list(
+                        emotions.keys()
+                    )
+
+                    emotion_values = list(
+                        emotions.values()
+                    )
+
+                    total = sum(
+                        emotion_values
+                    )
+
+                    sizes = [
+                        (v / total) * 2 * np.pi
+                        for v in emotion_values
+                    ]
+
+                    angles = np.cumsum(
+                        [0] + sizes[:-1]
+                    )
+
+                    colors = [
+                        "#FFD166",
+                        "#EF476F",
+                        "#06D6A0",
+                        "#118AB2",
+                        "#9B5DE5"
+                    ]
+
+                    ax.bar(
+                        angles,
+                        emotion_values,
+                        width=sizes,
+                        bottom=2,
+                        color=colors[:len(emotion_values)],
+                        edgecolor="white",
+                        linewidth=2,
+                        align='edge'
+                    )
+
+                    # -------------------------------------------------
+                    # LABELS
+                    # -------------------------------------------------
+
+                    for angle, label_name, value in zip(
+                        angles,
+                        emotion_labels,
+                        emotion_values
                     ):
 
-                        percentage = round(
-                            value * 100,
-                            1
+                        ax.text(
+                            angle + 0.2,
+                            3.2,
+                            f"{label_name}\n{round(value*100)}%",
+                            ha='center',
+                            va='center',
+                            fontsize=11,
+                            fontweight='bold',
+                            color='white'
                         )
 
-                        if emotion == "Happy":
+                    # -------------------------------------------------
+                    # STYLE
+                    # -------------------------------------------------
 
-                            emoji = "😄"
-
-                            color = "#00C853"
-
-                        elif emotion == "Sad":
-
-                            emoji = "😢"
-
-                            color = "#FF5252"
-
-                        elif emotion == "Angry":
-
-                            emoji = "😡"
-
-                            color = "#FF6D00"
-
-                        elif emotion == "Fear":
-
-                            emoji = "😨"
-
-                            color = "#7E57C2"
-
-                        else:
-
-                            emoji = "😲"
-
-                            color = "#29B6F6"
-
-                        cols[index].markdown(
-                            f"""
-                            <div style="
-                                background:{color};
-                                padding:20px;
-                                border-radius:20px;
-                                text-align:center;
-                                color:white;
-                                box-shadow:0 4px 15px rgba(0,0,0,0.3);
-                            ">
-
-                            <h1>{emoji}</h1>
-
-                            <h3>{emotion}</h3>
-
-                            <h2>{percentage}%</h2>
-
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
-
-                    st.markdown(
-                        "<br>",
-                        unsafe_allow_html=True
+                    ax.set_theta_offset(
+                        np.pi / 2
                     )
 
-                    # -----------------------------------------
-                    # MODERN DONUT CHART
-                    # -----------------------------------------
+                    ax.set_theta_direction(-1)
 
-                    fig3, ax3 = plt.subplots(
-                        figsize=(5, 5)
-                    )
+                    ax.set_yticklabels([])
 
-                    ax3.pie(
+                    ax.set_xticklabels([])
 
-                        filtered_emotions.values(),
+                    ax.grid(False)
 
-                        labels=filtered_emotions.keys(),
+                    ax.spines['polar'].set_visible(False)
 
-                        autopct='%1.1f%%',
+                    fig.patch.set_facecolor("#0E1117")
 
-                        startangle=90,
+                    ax.set_facecolor("#0E1117")
 
-                        wedgeprops={
-                            'width': 0.4
-                        }
-                    )
-
-                    centre_circle = plt.Circle(
-                        (0, 0),
-                        0.70,
-                        fc='white'
-                    )
-
-                    fig3.gca().add_artist(
-                        centre_circle
-                    )
-
-                    ax3.set_title(
-                        "Emotion Distribution",
-                        fontsize=16,
-                        fontweight='bold'
-                    )
-
-                    st.pyplot(
-                        fig3,
-                        use_container_width=False
-                    )
+                    st.pyplot(fig)
 
             except Exception as e:
 
@@ -574,40 +524,12 @@ else:
                     str(e)
                 )
 
-            # -------------------------------------------------
-            # AI ASSISTANT
-            # -------------------------------------------------
-
-            st.subheader(
-                "🤖 AI Assistant"
-            )
-
-            if label == "NEGATIVE":
-
-                st.error(
-                    "I'm sorry you're feeling upset. Hope things improve soon. 💙"
-                )
-
-            elif label == "POSITIVE":
-
-                st.success(
-                    "That's great to hear! Keep smiling 😀"
-                )
-
-            else:
-
-                st.info(
-                    "Thank you for sharing your thoughts 🙂"
-                )
-
     # -------------------------------------------------
-    # PROFESSIONAL PREDICTION HISTORY
+    # PREDICTION HISTORY
     # -------------------------------------------------
-
-    st.markdown("---")
 
     with st.expander(
-        "📜 View Prediction History",
+        "📜 Prediction History",
         expanded=False
     ):
 
@@ -630,70 +552,60 @@ else:
 
         rows = cursor.fetchall()
 
-        if rows:
+        if len(rows) == 0:
+
+            st.info(
+                "No prediction history found"
+            )
+
+        else:
 
             for row in rows:
 
-                text_value = row[0]
+                text = row[0]
 
-                sentiment_value = row[1]
+                sentiment = row[1]
 
-                confidence_value = row[2]
+                confidence = row[2]
 
-                time_value = row[3]
+                created_at = row[3]
 
-                if sentiment_value == "POSITIVE":
+                if sentiment == "POSITIVE":
 
-                    sentiment_color = "🟢"
-
-                    border_color = "#00C853"
+                    sentiment_color = "#22C55E"
 
                 else:
 
-                    sentiment_color = "🔴"
-
-                    border_color = "#FF5252"
+                    sentiment_color = "#EF4444"
 
                 st.markdown(
                     f"""
                     <div style="
-                        background-color:#1c2b3a;
+                        background-color:#111827;
                         padding:20px;
                         border-radius:15px;
-                        margin-bottom:20px;
-                        border-left:6px solid {border_color};
-                        box-shadow:0 4px 12px rgba(0,0,0,0.3);
+                        margin-bottom:15px;
+                        border-left:6px solid {sentiment_color};
                     ">
 
                     <h4 style="color:white;">
-                    📝 User Text
+                    📝 {text}
                     </h4>
 
-                    <p style="
-                        color:#d6e4f0;
-                        font-size:18px;
-                    ">
-                    {text_value}
+                    <p style="color:#D1D5DB;">
+                    📌 Sentiment:
+                    <span style="color:{sentiment_color}; font-weight:bold;">
+                    {sentiment}
+                    </span>
                     </p>
 
-                    <hr>
-
-                    <p style="font-size:17px;">
-                    {sentiment_color}
-                    <b>Sentiment:</b>
-                    {sentiment_value}
+                    <p style="color:#D1D5DB;">
+                    📊 Confidence:
+                    {round(confidence * 100, 2)}%
                     </p>
 
-                    <p style="font-size:17px;">
-                    📊 <b>Confidence:</b>
-                    {confidence_value}%
-                    </p>
-
-                    <p style="
-                        font-size:15px;
-                        color:#cccccc;
-                    ">
-                    ⏰ {time_value}
+                    <p style="color:#9CA3AF;">
+                    ⏰ {created_at}
                     </p>
 
                     </div>
@@ -701,23 +613,13 @@ else:
                     unsafe_allow_html=True
                 )
 
-        else:
-
-            st.info(
-                "No prediction history found"
-            )
-
     # -------------------------------------------------
     # ADMIN DASHBOARD
     # -------------------------------------------------
 
     if username == "admin":
 
-        st.markdown("---")
-
-        st.subheader(
-            "📊 Admin Dashboard"
-        )
+        st.subheader("📊 Admin Dashboard")
 
         cursor.execute(
             '''
@@ -748,8 +650,20 @@ else:
             '''
         )
 
-        admin_rows = cursor.fetchall()
+        rows = cursor.fetchall()
 
-        for row in admin_rows:
+        admin_df = pd.DataFrame(
+            rows,
+            columns=[
+                "Username",
+                "Text",
+                "Sentiment",
+                "Confidence",
+                "Time"
+            ]
+        )
 
-            st.write(row)
+        st.dataframe(
+            admin_df,
+            use_container_width=True
+        )
