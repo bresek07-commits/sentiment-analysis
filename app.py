@@ -298,7 +298,7 @@ else:
     )
 
     st.write(
-        "AI-powered multilingual sentiment and emotion analysis"
+        "AI-powered multilingual sentiment analysis"
     )
 
     st.write(
@@ -388,161 +388,172 @@ else:
             )
 
             # =========================================================
-# SMART SENTIMENT LOGIC
-# =========================================================
+            # SMART SENTIMENT LOGIC
+            # =========================================================
 
-positive_words = [
-    "happy",
-    "excited",
-    "great",
-    "awesome",
-    "amazing",
-    "love",
-    "fantastic",
-    "wonderful",
-    "good",
-    "excellent",
-    "nice"
-]
+            positive_words = [
+                "happy",
+                "excited",
+                "great",
+                "awesome",
+                "amazing",
+                "love",
+                "fantastic",
+                "wonderful",
+                "good",
+                "excellent",
+                "nice",
+                "best",
+                "beautiful",
+                "brilliant"
+            ]
 
-negative_words = [
-    "sad",
-    "angry",
-    "bad",
-    "terrible",
-    "hate",
-    "worst",
-    "upset",
-    "depressed",
-    "awful",
-    "pain"
-]
+            negative_words = [
+                "sad",
+                "angry",
+                "bad",
+                "terrible",
+                "hate",
+                "worst",
+                "upset",
+                "depressed",
+                "awful",
+                "pain",
+                "cry",
+                "broken"
+            ]
 
-text_lower = translated_text.lower()
+            text_lower = translated_text.lower()
 
-prediction = model.predict(
-    transformed_text
-)[0]
+            prediction = model.predict(
+                transformed_text
+            )[0]
 
-# Force better predictions
+            # =========================================================
+            # FORCE BETTER PREDICTIONS
+            # =========================================================
 
-if any(word in text_lower for word in positive_words):
+            if any(word in text_lower for word in positive_words):
 
-    prediction = "POSITIVE"
+                prediction = "POSITIVE"
 
-elif any(word in text_lower for word in negative_words):
+            elif any(word in text_lower for word in negative_words):
 
-    prediction = "NEGATIVE"
+                prediction = "NEGATIVE"
 
-else:
+            else:
 
-    prediction = prediction
+                prediction = "NEUTRAL"
 
-    probability = model.predict_proba(
+            # =========================================================
+            # CONFIDENCE
+            # =========================================================
+
+            probability = model.predict_proba(
                 transformed_text
             )
 
-    confidence = np.max(
+            confidence = np.max(
                 probability
             ) * 100
 
-    label = prediction.upper()
+            label = prediction.upper()
 
-    # =========================================================
-    # SAVE HISTORY
-    # =========================================================
+            # =========================================================
+            # SAVE HISTORY
+            # =========================================================
 
-    cursor.execute(
-        '''
-        INSERT INTO sentiment_history (
+            cursor.execute(
+                '''
+                INSERT INTO sentiment_history (
 
-            username,
-            original_text,
-            translated_text,
-            sentiment,
-            confidence
+                    username,
+                    original_text,
+                    translated_text,
+                    sentiment,
+                    confidence
 
-        )
+                )
 
-        VALUES (?, ?, ?, ?, ?)
-        ''',
-        (
-            username,
-            user_input,
-            translated_text,
-            label,
-            confidence
-        )
-    )
-
-    conn.commit()
-
-    # =========================================================
-    # PREDICTION UI
-    # =========================================================
-
-    st.subheader(
-        "📌 Prediction"
-    )
-
-    if label == "POSITIVE":
-
-        st.markdown(
-            """
-            <div class="prediction-positive">
-                POSITIVE 😊
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    elif label == "NEGATIVE":
-
-        st.markdown(
-            """
-            <div class="prediction-negative">
-                NEGATIVE 😔
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    else:
-
-        st.markdown(
-            """
-            <div class="prediction-neutral">
-                NEUTRAL 😐
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # =========================================================
-        # AI ASSISTANT
-        # =========================================================
-
-        st.subheader(
-            "🤖 AI Assistant"
-        )
-
-        if label == "NEGATIVE":
-
-            st.write(
-                "I'm sorry you're feeling upset. Hope things improve soon ❤️"
+                VALUES (?, ?, ?, ?, ?)
+                ''',
+                (
+                    username,
+                    user_input,
+                    translated_text,
+                    label,
+                    confidence
+                )
             )
 
-        elif label == "POSITIVE":
+            conn.commit()
 
-            st.write(
-                "That's great to hear! Keep smiling 😀"
+            # =========================================================
+            # PREDICTION UI
+            # =========================================================
+
+            st.subheader(
+                "📌 Prediction"
             )
 
-        else:
+            if label == "POSITIVE":
 
-            st.write(
-                "You seem calm and neutral 😐"
+                st.markdown(
+                    """
+                    <div class="prediction-positive">
+                        POSITIVE 😊
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif label == "NEGATIVE":
+
+                st.markdown(
+                    """
+                    <div class="prediction-negative">
+                        NEGATIVE 😔
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            else:
+
+                st.markdown(
+                    """
+                    <div class="prediction-neutral">
+                        NEUTRAL 😐
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            # =========================================================
+            # AI ASSISTANT
+            # =========================================================
+
+            st.subheader(
+                "🤖 AI Assistant"
             )
+
+            if label == "NEGATIVE":
+
+                st.write(
+                    "I'm sorry you're feeling upset. Hope things improve soon ❤️"
+                )
+
+            elif label == "POSITIVE":
+
+                st.write(
+                    "That's great to hear! Keep smiling 😀"
+                )
+
+            else:
+
+                st.write(
+                    "You seem calm and neutral 😐"
+                )
 
     # =========================================================
     # HISTORY
