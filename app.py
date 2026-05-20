@@ -200,19 +200,24 @@ if not st.session_state.logged_in:
 
     st.markdown(
         """
-        <div style="display:flex; align-items:center; gap:18px; margin-bottom:20px;">
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:20px;
+            margin-bottom:25px;
+        ">
 
             <div style="
-                font-size:75px;
+                font-size:72px;
+                line-height:1;
             ">
                 🔐
             </div>
 
-            <h1 style="
-                margin:0;
+            <div style="
                 font-size:58px;
                 font-weight:800;
-                background: linear-gradient(
+                background:linear-gradient(
                     90deg,
                     #F97316,
                     #FB923C,
@@ -220,9 +225,10 @@ if not st.session_state.logged_in:
                 );
                 -webkit-background-clip:text;
                 -webkit-text-fill-color:transparent;
+                line-height:1.1;
             ">
                 Login
-            </h1>
+            </div>
 
         </div>
         """,
@@ -314,19 +320,24 @@ else:
 
     st.markdown(
         """
-        <div style="display:flex; align-items:center; gap:18px; margin-bottom:10px;">
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:20px;
+            margin-bottom:25px;
+        ">
 
             <div style="
-                font-size:75px;
+                font-size:72px;
+                line-height:1;
             ">
                 😊
             </div>
 
-            <h1 style="
-                margin:0;
+            <div style="
                 font-size:58px;
                 font-weight:800;
-                background: linear-gradient(
+                background:linear-gradient(
                     90deg,
                     #F97316,
                     #FB923C,
@@ -334,9 +345,11 @@ else:
                 );
                 -webkit-background-clip:text;
                 -webkit-text-fill-color:transparent;
+                line-height:1.1;
             ">
-                Advanced Sentiment Analysis AI
-            </h1>
+                Advanced Sentiment <br>
+                Analysis AI
+            </div>
 
         </div>
         """,
