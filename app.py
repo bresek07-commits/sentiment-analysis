@@ -53,7 +53,18 @@ html, body, [class*="css"] {
 h1 {
     font-size: 56px !important;
     font-weight: 800 !important;
-    color: white !important;
+
+    background: linear-gradient(
+        90deg,
+        #F97316,
+        #FB923C,
+        #FDBA74
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    line-height: 1.1;
 }
 
 h2, h3 {
