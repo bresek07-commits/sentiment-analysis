@@ -293,9 +293,15 @@ else:
     # TITLE
     # =========================================================
 
-    st.title(
-        "😊 Advanced Sentiment Analysis AI"
-    )
+    st.markdown(
+    """
+    <h1>
+        <span style="font-size:70px;">😊</span>
+        Advanced Sentiment Analysis AI
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 
     st.write(
         "AI-powered multilingual sentiment and emotion analysis"
