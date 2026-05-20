@@ -50,23 +50,6 @@ html, body, [class*="css"] {
     color: white;
 }
 
-h1 {
-    font-size: 56px !important;
-    font-weight: 800 !important;
-
-    background: linear-gradient(
-        90deg,
-        #F97316,
-        #FB923C,
-        #FDBA74
-    );
-
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    line-height: 1.1;
-}
-
 h2, h3 {
     color: white !important;
 }
@@ -78,6 +61,13 @@ h2, h3 {
     border: 2px solid #334155 !important;
     padding: 20px !important;
     font-size: 18px !important;
+}
+
+.stTextInput input {
+    background-color: #1E293B !important;
+    color: white !important;
+    border-radius: 12px !important;
+    border: 2px solid #334155 !important;
 }
 
 .stButton button {
@@ -208,7 +198,36 @@ if "name" not in st.session_state:
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
+    st.markdown(
+        """
+        <div style="display:flex; align-items:center; gap:18px; margin-bottom:20px;">
+
+            <div style="
+                font-size:75px;
+            ">
+                🔐
+            </div>
+
+            <h1 style="
+                margin:0;
+                font-size:58px;
+                font-weight:800;
+                background: linear-gradient(
+                    90deg,
+                    #F97316,
+                    #FB923C,
+                    #FDBA74
+                );
+                -webkit-background-clip:text;
+                -webkit-text-fill-color:transparent;
+            ">
+                Login
+            </h1>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     username_input = st.text_input(
         "Username"
@@ -294,17 +313,38 @@ else:
     # =========================================================
 
     st.markdown(
-    """
-    <h1>
-        <span style="font-size:70px;">😊</span>
-        Advanced Sentiment Analysis AI
-    </h1>
-    """,
-    unsafe_allow_html=True
-)
+        """
+        <div style="display:flex; align-items:center; gap:18px; margin-bottom:10px;">
+
+            <div style="
+                font-size:75px;
+            ">
+                😊
+            </div>
+
+            <h1 style="
+                margin:0;
+                font-size:58px;
+                font-weight:800;
+                background: linear-gradient(
+                    90deg,
+                    #F97316,
+                    #FB923C,
+                    #FDBA74
+                );
+                -webkit-background-clip:text;
+                -webkit-text-fill-color:transparent;
+            ">
+                Advanced Sentiment Analysis AI
+            </h1>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.write(
-        "AI-powered multilingual sentiment and emotion analysis"
+        "AI-powered multilingual sentiment analysis"
     )
 
     st.write(
